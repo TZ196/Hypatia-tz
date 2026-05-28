@@ -1,0 +1,6 @@
+0,Tempe-Arizona-USA,33.4242,-111.9289,0
+1,Izhevsk-Russia,56.8625,53.2171,0
+2,Oahu-Hawaii-USA,21.3099,-157.8581,0
+3,Fairbanks-Alaska-USA,64.8378,-147.7164,0
+4,Svalbard-Norway,78.2232,15.6267,0
+5,Punta-Arenas-Chile,-53.1638,-70.9181,0

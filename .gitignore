@@ -1,0 +1,21 @@
+# Python virtual environment
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated simulation data
+**/runs/
+**/logs/
+**/gen_data/
+**/logs_ns3/
+**/*.npz
+**/*.npy

@@ -1,0 +1,14 @@
+星座,星座简称,轨道壳,轨道壳标识,高度(km),倾角(°),轨道面数P,每面卫星数S,总卫星数,平均运动n(rev/day),离心率e,近地点幅角ω(°),相位差参数F,最小仰角(°),权威文献
+Starlink SpaceX Phase 1 Gen1,Starlink,Shell 1,Shell 1,550,53,72,22,1584,15.08,0,0,未公开（研究常用F=17）,25,FCC 21-48; FCC 19-67; SAT-MOD-20190830-00087
+Starlink SpaceX Phase 1 Gen1,Starlink,Shell 2,Shell 2,540,53.2,72,22,1584,15.1,0,0,未公开,25,FCC 21-48; SAT-MOD-20200417-00037
+Starlink SpaceX Phase 1 Gen1,Starlink,Shell 3,Shell 3,570,70,36,20,720,15.02,0,0,未公开,25,FCC 21-48; SAT-MOD-20200417-00037
+Starlink SpaceX Phase 1 Gen1,Starlink,Shell 4,Shell 4 (SSO/极轨),560,97.6,6,58,348,15.05,0,0,未公开,25,FCC 21-48; DA-21-8
+Starlink SpaceX Phase 1 Gen1,Starlink,Shell 5,Shell 5 (SSO+ISL),560,97.6,4,43,172,15.05,0,0,未公开,25,FCC 21-48; NSF.com公开分析
+Kuiper Amazon Leo Ka-band Gen1,Kuiper,Shell A,Shell A,590,33,28,28,784,14.95,0,0,未公开,未明确（覆盖56°N~56°S）,FCC 20-102; SAT-LOA-20190704-00057
+Kuiper Amazon Leo Ka-band Gen1,Kuiper,Shell B,Shell B,610,42,36,36,1296,14.89,0,0,未公开,同上,FCC 20-102
+Kuiper Amazon Leo Ka-band Gen1,Kuiper,Shell C,Shell C,630,51.9,34,34,1156,14.82,0,0,未公开,同上,FCC 20-102
+OneWeb Phase 1 Eutelsat OneWeb,OneWeb,极轨壳,极轨壳（近极轨）,1200,87.9,12,49,588,13.18,0,0,未公开（Walker-Star）,5,FCC DA-23-362; SAT-MPL-20200526-00062; ITU: L5/MCSAT-LEO
+OneWeb Phase 1 Eutelsat OneWeb,OneWeb,倾斜壳,倾斜壳（55°轨道）,1200,55,8,16,128,13.18,0,0,未公开,45,FCC DA-23-362; SAT-MPL-20200526-00062
+Iridium NEXT（第二代）,Iridium,极轨,极轨（Walker-Star）,780,86.4,6,11,66,14.36,0,0,F=2（66/6/2）,8.2,FCC: IBFS S1297; ITU: IRIDIUM-LEO; FCC DA 19-1296
+Telesat-1015 Lightspeed Final Constellation,Telesat,极轨壳,极轨壳（Polar）,1015,98.98,27,13,351,13.68,0,0,RAAN间隔=180°/27≈6.67°,10,FCC SAT-MPL-20200526-00053; Table A.2-1; ISED/ITU: CANSAT-LEO
+Telesat-1015 Lightspeed Final Constellation,Telesat,倾斜壳,倾斜壳（Inclined参考）,1325,50.88,40,33,1320,12.86,0,0,面内相位间隔≈10.91°,10,FCC SAT-MPL-20200526-00053; Table A.2-1
