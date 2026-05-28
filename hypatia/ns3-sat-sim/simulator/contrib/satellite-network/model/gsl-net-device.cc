@@ -34,6 +34,7 @@
 #include "ns3/node-container.h"
 #include "gsl-net-device.h"
 #include "gsl-channel.h"
+#include "satellite-path-monitor.h"
 
 namespace ns3 {
 
@@ -266,6 +267,7 @@ GSLNetDevice::TransmitStart (Ptr<Packet> p, const Address dest)
   bool result = m_channel->TransmitStart (p, this, dest, txTime);
   if (result == false)
     {
+      SatellitePathMonitor::RecordSatelliteDrop (p, m_node->GetId (), p->GetSize ());
       m_phyTxDropTrace (p);
     }
 
@@ -353,10 +355,13 @@ GSLNetDevice::Receive (Ptr<Packet> packet)
       // If we have an error model and it indicates that it is time to lose a
       // corrupted packet, don't forward this packet up, let it go.
       //
+      SatellitePathMonitor::RecordSatelliteDrop (packet, m_node->GetId (), packet->GetSize ());
       m_phyRxDropTrace (packet);
     }
   else 
     {
+      uint64_t receivedBytes = packet->GetSize ();
+
       // 
       // Hit the trace hooks.  All of these hooks are in the same place in this 
       // device because it is so simple, but this is not usually the case in
@@ -379,6 +384,14 @@ GSLNetDevice::Receive (Ptr<Packet> packet)
       // normal receive callback sees.
       //
       ProcessHeader (packet, protocol);
+      if (SatellitePathMonitor::IsSatelliteNode (m_node->GetId ()))
+        {
+          SatellitePathMonitor::RecordSatelliteReceive (packet, m_node->GetId (), receivedBytes);
+        }
+      else
+        {
+          SatellitePathMonitor::RecordGroundStationReceive (packet);
+        }
 
       if (!m_promiscCallback.IsNull ())
         {
@@ -522,6 +535,7 @@ GSLNetDevice::Send (
   //
   if (IsLinkUp () == false)
     {
+      SatellitePathMonitor::RecordSatelliteDrop (packet, m_node->GetId (), packet->GetSize ());
       m_macTxDropTrace (packet);
       return false;
     }
@@ -558,6 +572,7 @@ GSLNetDevice::Send (
 
   // Enqueue may fail (overflow)
 
+  SatellitePathMonitor::RecordSatelliteDrop (packet, m_node->GetId (), packet->GetSize ());
   m_macTxDropTrace (packet);
   return false;
 }

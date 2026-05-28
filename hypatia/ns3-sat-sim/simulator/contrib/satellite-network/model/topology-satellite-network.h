@@ -54,6 +54,7 @@
 #include "ns3/ipv4-routing-table-entry.h"
 #include "ns3/wifi-net-device.h"
 #include "ns3/point-to-point-laser-net-device.h"
+#include "ns3/satellite-path-monitor.h"
 #include "ns3/ipv4.h"
 
 namespace ns3 {
@@ -131,6 +132,8 @@ namespace ns3 {
         int64_t m_gsl_max_queue_size_pkts;
         bool m_enable_isl_utilization_tracking;
         int64_t m_isl_utilization_tracking_interval_ns;
+        bool m_enable_satellite_path_tracking;
+        int64_t m_satellite_path_tracking_interval_ns;
 
     };
 

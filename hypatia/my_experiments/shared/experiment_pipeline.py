@@ -133,6 +133,12 @@ def _write_ns3_config(config, config_path, flow_ids):
     satellite_network_dir_rel = os.path.relpath(satellite_network_dir, run_dir)
     routes_dir_rel = os.path.relpath(routes_dir, run_dir)
     tracking = "true" if config.ENABLE_ISL_UTILIZATION_TRACKING else "false"
+    satellite_path_tracking = "true" if getattr(config, "ENABLE_SATELLITE_PATH_TRACKING", False) else "false"
+    satellite_path_interval_ns = getattr(
+        config,
+        "SATELLITE_PATH_TRACKING_INTERVAL_NS",
+        getattr(config, "ISL_UTILIZATION_TRACKING_INTERVAL_NS", 1_000_000_000),
+    )
     flow_id_set = "set(" + ",".join(str(flow_id) for flow_id in flow_ids) + ")"
 
     lines = [
@@ -150,6 +156,8 @@ def _write_ns3_config(config, config_path, flow_ids):
         "",
         f"enable_isl_utilization_tracking={tracking}",
         f"isl_utilization_tracking_interval_ns={config.ISL_UTILIZATION_TRACKING_INTERVAL_NS}",
+        f"enable_satellite_path_tracking={satellite_path_tracking}",
+        f"satellite_path_tracking_interval_ns={satellite_path_interval_ns}",
         "",
         f"tcp_socket_type={config.TCP_SOCKET_TYPE}",
         "",

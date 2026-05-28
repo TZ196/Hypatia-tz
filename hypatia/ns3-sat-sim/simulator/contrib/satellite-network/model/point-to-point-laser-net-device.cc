@@ -34,6 +34,7 @@
 #include "ns3/ppp-header.h"
 #include "point-to-point-laser-net-device.h"
 #include "point-to-point-laser-channel.h"
+#include "satellite-path-monitor.h"
 
 namespace ns3 {
 
@@ -265,6 +266,7 @@ PointToPointLaserNetDevice::TransmitStart (Ptr<Packet> p)
   bool result = m_channel->TransmitStart (p, this, m_destination_node, txTime);
   if (result == false)
     {
+      SatellitePathMonitor::RecordSatelliteDrop (p, m_node->GetId (), p->GetSize ());
       m_phyTxDropTrace (p);
     }
   return result;
@@ -349,10 +351,13 @@ PointToPointLaserNetDevice::Receive (Ptr<Packet> packet)
       // If we have an error model and it indicates that it is time to lose a
       // corrupted packet, don't forward this packet up, let it go.
       //
+      SatellitePathMonitor::RecordSatelliteDrop (packet, m_node->GetId (), packet->GetSize ());
       m_phyRxDropTrace (packet);
     }
   else 
     {
+      uint64_t receivedBytes = packet->GetSize ();
+
       // 
       // Hit the trace hooks.  All of these hooks are in the same place in this 
       // device because it is so simple, but this is not usually the case in
@@ -375,6 +380,7 @@ PointToPointLaserNetDevice::Receive (Ptr<Packet> packet)
       // normal receive callback sees.
       //
       ProcessHeader (packet, protocol);
+      SatellitePathMonitor::RecordSatelliteReceive (packet, m_node->GetId (), receivedBytes);
 
       if (!m_promiscCallback.IsNull ())
         {
@@ -541,6 +547,7 @@ PointToPointLaserNetDevice::Send (
   //
   if (IsLinkUp () == false)
     {
+      SatellitePathMonitor::RecordSatelliteDrop (packet, m_node->GetId (), packet->GetSize ());
       m_macTxDropTrace (packet);
       return false;
     }
@@ -574,6 +581,7 @@ PointToPointLaserNetDevice::Send (
 
   // Enqueue may fail (overflow)
 
+  SatellitePathMonitor::RecordSatelliteDrop (packet, m_node->GetId (), packet->GetSize ());
   m_macTxDropTrace (packet);
   return false;
 }

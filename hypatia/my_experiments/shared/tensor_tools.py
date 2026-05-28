@@ -257,6 +257,56 @@ def build_sat_connectivity_tensor(config, bin_ms=1000, output_name=None):
     return out_path
 
 
+def build_sat_path_tensors(config):
+    """Build path-level satellite tensors from per-time-step matrix CSV files."""
+
+    base_dir = _logs_dir(config) / "sat_path_flow"
+    if not base_dir.exists():
+        raise FileNotFoundError(f"Satellite path flow directory not found: {base_dir}")
+
+    metadata = _read_key_value_file(base_dir / "metadata.txt")
+    expected_bins = int(metadata["num_time_bins"]) if "num_time_bins" in metadata else None
+
+    metric_specs = [
+        ("bytes", "sat_path_bytes_tensor.npy"),
+        ("packets", "sat_path_packets_tensor.npy"),
+        ("drop_bytes", "sat_path_drop_bytes_tensor.npy"),
+        ("drop_packets", "sat_path_drop_packets_tensor.npy"),
+    ]
+
+    out_dir = _data_dir(config)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    outputs = []
+    for metric, output_name in metric_specs:
+        metric_dir = base_dir / metric
+        files = sorted(metric_dir.glob("t_*.csv"), key=_time_matrix_index)
+        if not files:
+            raise FileNotFoundError(f"No matrix CSV files found in {metric_dir}")
+        if expected_bins is not None and len(files) != expected_bins:
+            raise ValueError(
+                f"Expected {expected_bins} {metric} CSV files in {metric_dir}, got {len(files)}"
+            )
+
+        matrices = []
+        for path in files:
+            matrix = np.loadtxt(path, delimiter=",", dtype=np.uint64)
+            if matrix.shape != (config.NUM_SATELLITES, config.NUM_SATELLITES):
+                raise ValueError(
+                    f"Unexpected matrix shape in {path}: {matrix.shape}; "
+                    f"expected {(config.NUM_SATELLITES, config.NUM_SATELLITES)}"
+                )
+            matrices.append(matrix)
+
+        tensor = np.stack(matrices, axis=2)
+        out_path = out_dir / output_name
+        np.save(out_path, tensor)
+        print(f"Saved satellite path {metric} tensor {tensor.shape} to {out_path}")
+        outputs.append(out_path)
+
+    return outputs
+
+
 def verify_sat_connectivity_tensor(path):
     data = np.load(path)
     conn = data["sat_connectivity"]
@@ -264,6 +314,27 @@ def verify_sat_connectivity_tensor(path):
     print("sat_connectivity dtype:", conn.dtype)
     print("time_ms len:", len(data["time_ms"]))
     print("sat_ids len:", len(data["sat_ids"]))
+
+
+def _time_matrix_index(path):
+    stem = path.stem
+    if not stem.startswith("t_"):
+        return stem
+    return int(stem.split("_", 1)[1])
+
+
+def _read_key_value_file(path):
+    values = {}
+    if not path.exists():
+        return values
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            values[key] = value
+    return values
 
 
 def _read_isls(path):

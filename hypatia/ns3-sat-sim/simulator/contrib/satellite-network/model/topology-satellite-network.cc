@@ -86,6 +86,19 @@ namespace ns3 {
             m_isl_utilization_tracking_interval_ns = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("isl_utilization_tracking_interval_ns"));
         }
 
+        // Path tracking settings
+        m_enable_satellite_path_tracking = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("enable_satellite_path_tracking", "false"));
+        m_satellite_path_tracking_interval_ns = parse_positive_int64(
+            m_basicSimulation->GetConfigParamOrDefault("satellite_path_tracking_interval_ns", "1000000000")
+        );
+        SatellitePathMonitor::Initialize(
+            m_enable_satellite_path_tracking,
+            m_satelliteNodes.GetN(),
+            m_satellite_path_tracking_interval_ns,
+            m_basicSimulation->GetSimulationEndTimeNs(),
+            m_basicSimulation->GetLogsDir()
+        );
+
         // Create ISLs
         std::cout << "  > Reading and creating ISLs" << std::endl;
         ReadISLs();
@@ -481,6 +494,7 @@ namespace ns3 {
             fclose(file_utilization_csv);
 
         }
+        SatellitePathMonitor::WriteCsvMatrices();
     }
 
     uint32_t TopologySatelliteNetwork::GetNumSatellites() {
