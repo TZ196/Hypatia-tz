@@ -75,7 +75,8 @@ class MainHelper:
             isl_selection,            # isls_{none, plus_grid}
             gs_selection,             # ground_stations_{top_100, paris_moscow_grid}
             dynamic_state_algorithm,  # algorithm_{free_one_only_{gs_relays,_over_isls}, paired_many_only_over_isls}
-            num_threads
+            num_threads,
+            ground_stations_basic_file=None
     ):
 
         output_generated_data_dir = Path(output_generated_data_dir)
@@ -90,7 +91,12 @@ class MainHelper:
 
         # Ground stations
         print("Generating ground stations...")
-        if gs_selection == "ground_stations_top_100":
+        if ground_stations_basic_file is not None:
+            satgen.extend_ground_stations(
+                str(ground_stations_basic_file),
+                str(experiment_dir / "ground_stations.txt")
+            )
+        elif gs_selection == "ground_stations_top_100":
             satgen.extend_ground_stations(
                 str(INPUT_DATA_DIR / "ground_stations_top_100.basic.txt"),
                 str(experiment_dir / "ground_stations.txt")
@@ -209,7 +215,8 @@ class MainHelper:
         if dynamic_state_algorithm == "algorithm_free_one_only_gs_relays" \
                 or dynamic_state_algorithm == "algorithm_free_one_only_over_isls":
             gsl_interfaces_per_satellite = 1
-        elif dynamic_state_algorithm == "algorithm_paired_many_only_over_isls":
+        elif dynamic_state_algorithm == "algorithm_free_gs_one_sat_many_only_over_isls" \
+                or dynamic_state_algorithm == "algorithm_paired_many_only_over_isls":
             gsl_interfaces_per_satellite = len(ground_stations)
         else:
             raise ValueError("Unknown dynamic state algorithm: " + dynamic_state_algorithm)
