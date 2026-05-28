@@ -1,0 +1,41 @@
+1. Traffic Tensor
+入口是 tensor_tools.py (line 51) 的 build_traffic_tensor()。
+它的逻辑是：
+先读 runs/.../logs_ns3/tcp_flows.txt，把 flow_id -> (src_idx, dst_idx) 建出来，见 _read_flow_map() (line 19)。
+src_idx 和 dst_idx 不是原始节点号，而是用 src - GS_START_NODE_ID、dst - GS_START_NODE_ID 映射到地面站局部编号，所以张量前两维只针对“实验里的地面站集合”。
+然后逐个读 tcp_flow_<id>_progress.csv，取每两次采样间的累计字节差值 delta = bytes_cum - prev_bytes，见 82-87 行 (line 82)。
+这个 delta 被加到 prev_time 所在的时间片里，也就是说它假设这段新增流量属于“前一个采样时刻开始的那个片段”。
+最终得到的张量 shape 是 (NUM_GROUND_STATIONS, NUM_GROUND_STATIONS, NUM_SLICES)，每个元素表示：
+某个时间片里，从源地面站 i 到目的地面站 j 实际发送了多少字节
+这是一种“按时间片聚合的流量张量”。
+2. RTT Tensor
+入口是 build_rtt_tensor() (line 103)。
+它和 traffic tensor 的区别是：
+输入改成 tcp_flow_<id>_rtt.csv
+每条记录里用的是 RTT 值，不是累计字节
+它假设“相邻两个采样点之间 RTT 保持前一个采样值不变”，然后做时间加权平均，见 _add_weighted_interval() (line 168)
+具体算法是：
+对区间 [prev_time, time_ns) 使用 RTT=prev_rtt
+如果整个区间落在一个时间片里，就累加 rtt * duration
+如果跨多个时间片，就拆成“首片 + 中间整片 + 尾片”分别加权
+最后用 rtt_weighted / rtt_weight 求平均，见 155-157 行 (line 155)
+所以这个张量的含义是：
+某个时间片里，从地面站 i 到地面站 j 的平均 RTT
+这个逻辑比 traffic tensor 更细，因为它处理了“一个 RTT 值跨越多个时间片”的情况。
+3. Satellite Connectivity Tensor
+入口是 build_sat_connectivity_tensor() (line 200)。
+它不依赖 ns-3 日志，而是直接依赖 satgenpy 生成的数据：
+isls.txt
+tles.txt
+description.txt
+见 207-219 行 (line 207)
+逻辑是：
+从 isls.txt 读出所有候选卫星边 (a, b)
+从 tles.txt 读每颗卫星轨道和 epoch
+从 description.txt 读 max_isl_length_m
+对每个时间 bin，计算该时刻卫星 a 和 b 的真实距离
+如果 dist_m <= max_isl_length_m，就记为连通，见 225-234 行 (line 225)
+输出张量 shape 是：
+(num_satellites, num_satellites, t_bins)
+每个元素是 0/1，表示：
+时间片 t 时，卫星 a 和卫星 b 的 ISL 是否可用
