@@ -1,5 +1,6 @@
 """Reusable tensor builders for experiment outputs."""
 
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -14,6 +15,14 @@ def _logs_dir(config) -> Path:
 
 def _data_dir(config) -> Path:
     return config.run_dir() / "data"
+
+
+def _ensure_satgenpy_on_path(config):
+    satgenpy_dir = config.HYPATIA_DIR / "satgenpy"
+    if not satgenpy_dir.exists():
+        raise FileNotFoundError(f"satgenpy directory not found: {satgenpy_dir}")
+    if str(satgenpy_dir) not in sys.path:
+        sys.path.insert(0, str(satgenpy_dir))
 
 
 def _read_flow_map(config):
@@ -199,6 +208,8 @@ def _add_weighted_interval(target, weight, src_idx, dst_idx, start_ns, end_ns, v
 
 def build_sat_connectivity_tensor(config, bin_ms=1000, output_name=None):
     """Build a satellite ISL connectivity tensor from generated satgenpy data."""
+
+    _ensure_satgenpy_on_path(config)
 
     from astropy import units as u
     from satgen.distance_tools import distance_m_between_satellites
