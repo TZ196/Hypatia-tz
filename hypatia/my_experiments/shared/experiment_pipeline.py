@@ -6,6 +6,7 @@ pipeline logic.
 """
 
 import csv
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -127,8 +128,11 @@ def _flow_ids_from_schedule(schedule_path):
 
 
 def _write_ns3_config(config, config_path, flow_ids):
+    run_dir = config.run_dir().resolve()
     satellite_network_dir = config.generated_satellite_network_dir().resolve()
     routes_dir = satellite_network_dir / config.dynamic_state_dir_name()
+    satellite_network_dir_rel = os.path.relpath(satellite_network_dir, run_dir)
+    routes_dir_rel = os.path.relpath(routes_dir, run_dir)
     tracking = "true" if config.ENABLE_ISL_UTILIZATION_TRACKING else "false"
     flow_id_set = "set(" + ",".join(str(flow_id) for flow_id in flow_ids) + ")"
 
@@ -136,8 +140,8 @@ def _write_ns3_config(config, config_path, flow_ids):
         f"simulation_end_time_ns={config.DURATION_S * 1000 * 1000 * 1000}",
         "simulation_seed=123456789",
         "",
-        f"satellite_network_dir=\"{satellite_network_dir}\"",
-        f"satellite_network_routes_dir=\"{routes_dir}\"",
+        f"satellite_network_dir={satellite_network_dir_rel}",
+        f"satellite_network_routes_dir={routes_dir_rel}",
         f"dynamic_state_update_interval_ns={config.TIME_STEP_MS * 1000 * 1000}",
         "",
         f"isl_data_rate_megabit_per_s={config.DATA_RATE_MBIT_PER_S}",
