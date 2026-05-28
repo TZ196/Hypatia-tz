@@ -1,8 +1,7 @@
-"""Reusable experiment pipeline for my_experiments.
+"""my_experiments 的可复用实验流水线。
 
-Each experiment provides its own config module and constellation helper. This
-module owns the common workflow so experiments stay isolated without copying
-pipeline logic.
+每个实验提供自己的 config 模块和 constellation helper。
+本模块负责通用流程，这样不同实验可以相互隔离，而不需要重复复制流水线逻辑。
 """
 
 import csv
@@ -21,7 +20,7 @@ def read_ground_stations(path):
                 continue
             parts = line.split(",")
             if len(parts) != 5:
-                raise ValueError(f"Bad ground station row in {path}: {line}")
+                raise ValueError(f"地面站文件中的行格式错误，文件: {path}，内容: {line}")
             stations.append({
                 "local_gs_id": int(parts[0]),
                 "name": parts[1],
@@ -39,7 +38,7 @@ def define_ground_stations(config):
     stations = read_ground_stations(config.GROUND_STATIONS_FILE)
     if len(stations) != config.NUM_GROUND_STATIONS:
         raise ValueError(
-            f"Expected {config.NUM_GROUND_STATIONS} ground stations, got {len(stations)}"
+            f"地面站数量不匹配：期望 {config.NUM_GROUND_STATIONS} 个，实际得到 {len(stations)} 个"
         )
 
     with open(config.GROUND_STATIONS_MANIFEST, "w", newline="", encoding="utf-8") as f:
@@ -50,9 +49,9 @@ def define_ground_stations(config):
         writer.writeheader()
         writer.writerows(stations)
 
-    print(f"Defined {len(stations)} ground stations")
-    print(f"Ground station input: {config.GROUND_STATIONS_FILE}")
-    print(f"Readable manifest: {config.GROUND_STATIONS_MANIFEST}")
+    print(f"已定义 {len(stations)} 个地面站")
+    print(f"地面站输入文件: {config.GROUND_STATIONS_FILE}")
+    print(f"地面站可读清单文件: {config.GROUND_STATIONS_MANIFEST}")
 
 
 def design_traffic(config):
@@ -88,19 +87,19 @@ def design_traffic(config):
         f.write(f"traffic_matrix={config.TRAFFIC_MATRIX_FILE.name}\n")
         f.write(f"station_activity={config.TRAFFIC_ACTIVITY_FILE.name}\n")
 
-    print(f"Generated {len(flows)} TCP flows")
-    print(f"Total traffic: {summary['total_size_byte']} bytes")
-    print(f"Schedule: {config.TRAFFIC_SCHEDULE_FILE}")
-    print(f"Traffic matrix: {config.TRAFFIC_MATRIX_FILE}")
-    print(f"Station activity: {config.TRAFFIC_ACTIVITY_FILE}")
-    print(f"Design summary: {config.TRAFFIC_DESIGN_FILE}")
+    print(f"已生成 {len(flows)} 条 TCP 流")
+    print(f"总流量: {summary['total_size_byte']} 字节")
+    print(f"流量调度文件: {config.TRAFFIC_SCHEDULE_FILE}")
+    print(f"流量矩阵文件: {config.TRAFFIC_MATRIX_FILE}")
+    print(f"地面站活跃度文件: {config.TRAFFIC_ACTIVITY_FILE}")
+    print(f"流量设计摘要文件: {config.TRAFFIC_DESIGN_FILE}")
 
 
 def generate_satellite_network_state(config, constellation_helper, threads):
     if not config.GROUND_STATIONS_FILE.exists():
         raise FileNotFoundError(
-            f"Ground station file is missing: {config.GROUND_STATIONS_FILE}\n"
-            "Run the ground-station definition step first."
+            f"地面站文件缺失: {config.GROUND_STATIONS_FILE}\n"
+            "请先运行地面站定义步骤。"
         )
 
     constellation_helper.calculate(
@@ -114,7 +113,7 @@ def generate_satellite_network_state(config, constellation_helper, threads):
         ground_stations_basic_file=config.GROUND_STATIONS_FILE,
     )
 
-    print(f"Generated satellite network state: {config.generated_satellite_network_dir()}")
+    print(f"已生成卫星网络状态目录: {config.generated_satellite_network_dir()}")
 
 
 def _flow_ids_from_schedule(schedule_path):
@@ -165,13 +164,13 @@ def _write_ns3_config(config, config_path, flow_ids):
 def generate_ns3_run(config):
     if not config.generated_satellite_network_dir().exists():
         raise FileNotFoundError(
-            f"Satellite network state is missing: {config.generated_satellite_network_dir()}\n"
-            "Run the satellite-network-state step first."
+            f"卫星网络状态目录缺失: {config.generated_satellite_network_dir()}\n"
+            "请先运行卫星网络状态生成步骤。"
         )
     if not config.TRAFFIC_SCHEDULE_FILE.exists():
         raise FileNotFoundError(
-            f"Traffic schedule is missing: {config.TRAFFIC_SCHEDULE_FILE}\n"
-            "Run the traffic-design step first."
+            f"流量调度文件缺失: {config.TRAFFIC_SCHEDULE_FILE}\n"
+            "请先运行流量设计步骤。"
         )
 
     rd = config.run_dir()
@@ -181,36 +180,86 @@ def generate_ns3_run(config):
     (rd / "logs_ns3").mkdir()
 
     shutil.copyfile(config.TRAFFIC_SCHEDULE_FILE, rd / "schedule.csv")
-    _write_ns3_config(config, rd / "config_ns3.properties", _flow_ids_from_schedule(config.TRAFFIC_SCHEDULE_FILE))
 
-    print(f"Generated ns-3 run directory: {rd}")
-    print(f"Config: {rd / 'config_ns3.properties'}")
-    print(f"Schedule: {rd / 'schedule.csv'}")
+    # 将 ns-3 运行时需要读取的拓扑文件复制到 runs/main 目录。
+    # 这样 main_satnet 使用 --run_dir=runs/main 启动时，可以直接找到这些文件。
+    satellite_network_dir = config.generated_satellite_network_dir()
+    required_files = [
+        "tles.txt",
+        "isls.txt",
+        "gsl_interfaces_info.txt",
+    ]
+
+    for filename in required_files:
+        src = satellite_network_dir / filename
+        dst = rd / filename
+        if src.exists():
+            shutil.copyfile(src, dst)
+        else:
+            raise FileNotFoundError(
+                f"ns-3 所需文件缺失: {src}\n"
+                f"无法生成完整运行目录: {rd}"
+            )
+
+    optional_files = [
+        "description.txt",
+    ]
+
+    for filename in optional_files:
+        src = satellite_network_dir / filename
+        dst = rd / filename
+        if src.exists():
+            shutil.copyfile(src, dst)
+
+    _write_ns3_config(
+        config,
+        rd / "config_ns3.properties",
+        _flow_ids_from_schedule(config.TRAFFIC_SCHEDULE_FILE),
+    )
+
+    print(f"已生成 ns-3 运行目录: {rd}")
+    print(f"配置文件: {rd / 'config_ns3.properties'}")
+    print(f"流量调度文件: {rd / 'schedule.csv'}")
+    print(f"已复制卫星 TLE 文件: {rd / 'tles.txt'}")
+    print(f"已复制星间链路文件: {rd / 'isls.txt'}")
+    print(f"已复制 GSL 接口文件: {rd / 'gsl_interfaces_info.txt'}")
 
 
 def run_ns3(config, build=False):
     rd = config.run_dir().resolve()
     if not (rd / "config_ns3.properties").exists():
         raise FileNotFoundError(
-            f"Run directory is not ready: {rd}\n"
-            "Run the ns-3-run generation step first."
+            f"ns-3 运行目录尚未准备好: {rd}\n"
+            "请先运行 ns-3 运行目录生成步骤。"
         )
 
     ns3_root = config.HYPATIA_DIR / "ns3-sat-sim"
     simulator_dir = ns3_root / "simulator"
 
     if build:
+        print("正在编译 ns-3 仿真程序...")
         subprocess.run(["bash", "build.sh", "--optimized"], cwd=ns3_root, check=True)
+        print("ns-3 仿真程序编译完成")
 
     console_log = rd / "logs_ns3" / "console.txt"
     console_log.parent.mkdir(parents=True, exist_ok=True)
     command = ["./waf", "--run", f"main_satnet --run_dir={rd}"]
 
-    with open(console_log, "w", encoding="utf-8") as log_file:
-        subprocess.run(command, cwd=simulator_dir, stdout=log_file, stderr=subprocess.STDOUT, check=True)
+    print("正在运行 ns-3 仿真...")
+    print(f"运行目录: {rd}")
+    print(f"控制台日志将写入: {console_log}")
 
-    print(f"ns-3 simulation finished: {rd}")
-    print(f"Console log: {console_log}")
+    with open(console_log, "w", encoding="utf-8") as log_file:
+        subprocess.run(
+            command,
+            cwd=simulator_dir,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            check=True,
+        )
+
+    print(f"ns-3 仿真完成: {rd}")
+    print(f"控制台日志: {console_log}")
 
 
 def run_pipeline(config, constellation_helper, threads=4, build=False):
