@@ -130,36 +130,35 @@ def generate_dynamic_state_at(
 
     # ISL edges
     total_num_isls = 0
+    active_num_isls = 0
     num_isls_per_sat = [0] * len(satellites)
     sat_neighbor_to_if = {}
     for (a, b) in list_isls:
 
-        # ISLs are not permitted to exceed their maximum distance
-        # TODO: Technically, they can (could just be ignored by forwarding state calculation),
-        # TODO: but practically, defining a permanent ISL between two satellites which
-        # TODO: can go out of distance is generally unwanted
-        sat_distance_m = distance_m_between_satellites(satellites[a], satellites[b], str(epoch), str(time))
-        if sat_distance_m > max_isl_length_m:
-            raise ValueError(
-                "The distance between two satellites (%d and %d) "
-                "with an ISL exceeded the maximum ISL length (%.2fm > %.2fm at t=%dns)"
-                % (a, b, sat_distance_m, max_isl_length_m, time_since_epoch_ns)
-            )
-
-        # Add to networkx graph
-        sat_net_graph_only_satellites_with_isls.add_edge(
-            a, b, weight=sat_distance_m
-        )
-
-        # Interface mapping of ISLs
+        # Interface mapping must include every configured ISL, even if it is
+        # currently out of range. ns-3 creates NetDevices for the static
+        # isls.txt list, while the forwarding graph only uses links valid at
+        # this time step.
         sat_neighbor_to_if[(a, b)] = num_isls_per_sat[a]
         sat_neighbor_to_if[(b, a)] = num_isls_per_sat[b]
         num_isls_per_sat[a] += 1
         num_isls_per_sat[b] += 1
         total_num_isls += 1
 
+        # Only active ISLs are added to the routing graph.
+        sat_distance_m = distance_m_between_satellites(satellites[a], satellites[b], str(epoch), str(time))
+        if sat_distance_m > max_isl_length_m:
+            continue
+
+        # Add to networkx graph
+        sat_net_graph_only_satellites_with_isls.add_edge(
+            a, b, weight=sat_distance_m
+        )
+        active_num_isls += 1
+
     if enable_verbose_logs:
-        print("  > Total ISLs............. " + str(len(list_isls)))
+        print("  > Total ISLs............. " + str(total_num_isls))
+        print("  > Active ISLs............ " + str(active_num_isls))
         print("  > Min. ISLs/satellite.... " + str(np.min(num_isls_per_sat)))
         print("  > Max. ISLs/satellite.... " + str(np.max(num_isls_per_sat)))
 

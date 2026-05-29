@@ -149,50 +149,9 @@ class MainHelper:
                 isl_shift=isl_shift,
                 idx_offset=0
             )
-            # Post-filter generated ISLs to ensure they never exceed the allowed max ISL
-            # length during the simulation window. Some Walker phasings (small sats/orbit)
-            # produce long cross-plane links that are not physically valid.
-            try:
-                # Read generated ISLs
-                isls_path = experiment_dir / "isls.txt"
-                list_isls = satgen.read_isls(str(isls_path), self.NUM_ORBS * self.NUM_SATS_PER_ORB)
-
-                # Read TLEs to access epoch and satellite objects
-                tles = satgen.read_tles(str(experiment_dir / "tles.txt"))
-                epoch = tles["epoch"]
-                satellites = tles["satellites"]
-
-                # Sampling: check up to 500 evenly spaced instants across duration
-                sample_count = min(500, max(10, int(duration_s)))
-                times_ns = [int(i * (duration_s * 1e9) / float(sample_count - 1)) for i in range(sample_count)]
-
-                filtered_isls = []
-                for (a, b) in list_isls:
-                    valid = True
-                    for t_ns in times_ns:
-                        try:
-                            time = epoch + t_ns * u.ns
-                            sat_distance_m = satgen.distance_m_between_satellites(
-                                satellites[a], satellites[b], str(epoch), str(time)
-                            )
-                        except Exception:
-                            # If distance computation fails for some instant, treat as invalid
-                            valid = False
-                            break
-                        if sat_distance_m > self.MAX_ISL_LENGTH_M:
-                            valid = False
-                            break
-                    if valid:
-                        filtered_isls.append((a, b))
-
-                # Overwrite isls.txt with filtered list
-                with open(isls_path, 'w+') as f:
-                    for (a, b) in filtered_isls:
-                        f.write(str(a) + " " + str(b) + "\n")
-
-                print("Filtered ISLs: kept %d of %d" % (len(filtered_isls), len(list_isls)))
-            except Exception as e:
-                print("Warning: ISL post-filtering failed: " + str(e))
+            # Keep the full plus-grid candidate set in isls.txt. Dynamic-state
+            # generation decides at each time step which candidates are within
+            # max range, which is necessary for intermittent cross-plane ISLs.
         elif isl_selection == "isls_none":
             satgen.generate_empty_isls(
                 str(experiment_dir / "isls.txt")
