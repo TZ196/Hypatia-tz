@@ -307,6 +307,140 @@ def build_sat_path_tensors(config):
     return outputs
 
 
+def build_sat_path_flow_from_routes(config, time_slice_s=1, output_name="sat_path_bytes_from_routes_tensor.npy"):
+    """Build satellite path-flow matrices from TCP progress and satgenpy forwarding state.
+
+    For each TCP flow byte delta, this uses the forwarding state active at the
+    delta start time to recover the satellite path. The same byte delta is then
+    attributed once to every earlier-satellite -> later-satellite pair on that
+    path. For A->B->C, a byte delta contributes to A->B, A->C, and B->C.
+    """
+
+    num_slices = _num_slices(config, time_slice_s)
+    slice_ns = NS_PER_S * time_slice_s
+    dynamic_state_dir = config.generated_satellite_network_dir() / config.dynamic_state_dir_name()
+    if not dynamic_state_dir.exists():
+        raise FileNotFoundError(f"Dynamic state directory not found: {dynamic_state_dir}")
+
+    available_fstates = _available_fstate_times(dynamic_state_dir)
+    if not available_fstates:
+        raise FileNotFoundError(f"No fstate_*.txt files found in {dynamic_state_dir}")
+
+    flow_endpoints = _read_flow_endpoints(config)
+    tensor = np.zeros(
+        (config.NUM_SATELLITES, config.NUM_SATELLITES, num_slices),
+        dtype=np.uint64,
+    )
+
+    fstate_cache = {}
+    path_cache = {}
+    processed = 0
+    skipped = 0
+    deltas = 0
+    routed_deltas = 0
+    unrouted_deltas = 0
+    expanded_pair_updates = 0
+    expanded_non_adjacent_updates = 0
+
+    for flow_id in sorted(flow_endpoints):
+        progress_path = _logs_dir(config) / f"tcp_flow_{flow_id}_progress.csv"
+        if not progress_path.exists():
+            skipped += 1
+            continue
+
+        src_node, dst_node = flow_endpoints[flow_id]
+        prev_time = None
+        prev_bytes = None
+
+        with open(progress_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.split(",")
+                time_ns = int(parts[1])
+                bytes_cum = int(parts[2])
+
+                if prev_time is not None:
+                    delta = bytes_cum - prev_bytes
+                    if delta > 0:
+                        deltas += 1
+                        slice_idx = prev_time // slice_ns
+                        if 0 <= slice_idx < num_slices:
+                            fstate_time = _select_fstate_time(
+                                prev_time,
+                                available_fstates,
+                                getattr(config, "TIME_STEP_MS", time_slice_s * 1000),
+                            )
+                            route_key = (fstate_time, src_node, dst_node)
+                            path = path_cache.get(route_key)
+                            if path is None:
+                                fstate = fstate_cache.get(fstate_time)
+                                if fstate is None:
+                                    fstate = _read_fstate(dynamic_state_dir / f"fstate_{fstate_time}.txt")
+                                    fstate_cache[fstate_time] = fstate
+                                path = _satellite_path_for_flow(
+                                    fstate,
+                                    src_node,
+                                    dst_node,
+                                    config.NUM_SATELLITES,
+                                )
+                                path_cache[route_key] = path
+
+                            if len(path) >= 2:
+                                routed_deltas += 1
+                                pair_updates, non_adjacent_updates = _add_path_delta(
+                                    tensor,
+                                    path,
+                                    int(delta),
+                                    int(slice_idx),
+                                )
+                                expanded_pair_updates += pair_updates
+                                expanded_non_adjacent_updates += non_adjacent_updates
+                            else:
+                                unrouted_deltas += 1
+
+                prev_time = time_ns
+                prev_bytes = bytes_cum
+
+        processed += 1
+
+    out_dir = _data_dir(config)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / output_name
+    np.save(out_path, tensor)
+
+    csv_dir = _logs_dir(config) / "sat_path_flow_from_routes" / "bytes"
+    csv_dir.mkdir(parents=True, exist_ok=True)
+    for slice_idx in range(num_slices):
+        csv_path = csv_dir / f"t_{slice_idx:06d}.csv"
+        np.savetxt(csv_path, tensor[:, :, slice_idx], delimiter=",", fmt="%d")
+
+    metadata_path = csv_dir.parent / "metadata.txt"
+    with open(metadata_path, "w", encoding="utf-8") as f:
+        f.write(f"num_satellites={config.NUM_SATELLITES}\n")
+        f.write(f"num_time_bins={num_slices}\n")
+        f.write(f"interval_ns={slice_ns}\n")
+        f.write("layout=matrix[from_sat][to_sat]\n")
+        f.write("source=tcp_progress_plus_fstate_routes\n")
+        f.write("semantics=flow_delta_expanded_to_all_earlier_later_satellite_pairs\n")
+        f.write(f"processed_flows={processed}\n")
+        f.write(f"skipped_flows={skipped}\n")
+        f.write(f"positive_deltas={deltas}\n")
+        f.write(f"routed_deltas={routed_deltas}\n")
+        f.write(f"unrouted_or_single_sat_deltas={unrouted_deltas}\n")
+        f.write(f"expanded_pair_updates={expanded_pair_updates}\n")
+        f.write(f"expanded_non_adjacent_updates={expanded_non_adjacent_updates}\n")
+        f.write(f"available_fstate_files={len(available_fstates)}\n")
+
+    print(f"Saved route-derived satellite path tensor {tensor.shape} to {out_path}")
+    print(f"Saved per-slice CSV matrices to {csv_dir}")
+    print(f"Metadata: {metadata_path}")
+    print(f"Processed {processed} flows, skipped {skipped}")
+    print(f"Positive deltas {deltas}, routed {routed_deltas}, unrouted/single-sat {unrouted_deltas}")
+    return out_path
+
+
 def verify_sat_connectivity_tensor(path):
     data = np.load(path)
     conn = data["sat_connectivity"]
@@ -335,6 +469,109 @@ def _read_key_value_file(path):
             key, value = line.split("=", 1)
             values[key] = value
     return values
+
+
+def _read_flow_endpoints(config):
+    flow_map = {}
+    path = _logs_dir(config) / "tcp_flows.txt"
+    with open(path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    for line in lines[1:]:
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split()
+        flow_id = int(parts[0])
+        src = int(parts[1])
+        dst = int(parts[2])
+        flow_map[flow_id] = (src, dst)
+    return flow_map
+
+
+def _available_fstate_times(dynamic_state_dir):
+    times = []
+    for path in dynamic_state_dir.glob("fstate_*.txt"):
+        stem = path.stem
+        try:
+            times.append(int(stem.split("_", 1)[1]))
+        except (IndexError, ValueError):
+            continue
+    return sorted(times)
+
+
+def _select_fstate_time(time_ns, available_fstates, time_step_ms):
+    step_ns = int(time_step_ms) * 1_000_000
+    candidate = int(time_ns // step_ns) * step_ns if step_ns > 0 else int(time_ns)
+    if candidate in available_fstates:
+        return candidate
+
+    # Fall back to the latest available forwarding state at or before time_ns.
+    # This mirrors how a discrete dynamic state is held constant until updated.
+    left = 0
+    right = len(available_fstates)
+    while left < right:
+        mid = (left + right) // 2
+        if available_fstates[mid] <= time_ns:
+            left = mid + 1
+        else:
+            right = mid
+    idx = max(0, left - 1)
+    return available_fstates[idx]
+
+
+def _read_fstate(path):
+    forwarding = {}
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            current, dest, next_hop, _own_if, _next_if = line.split(",", 4)
+            forwarding[(int(current), int(dest))] = int(next_hop)
+    return forwarding
+
+
+def _satellite_path_for_flow(fstate, src_node, dst_node, num_satellites):
+    current = src_node
+    path = []
+    visited = set()
+    max_hops = max(4 * num_satellites, 16)
+
+    for _ in range(max_hops):
+        if current == dst_node:
+            return path
+        state_key = (current, dst_node)
+        if state_key not in fstate:
+            return []
+
+        next_node = fstate[state_key]
+        if next_node < num_satellites and next_node not in path:
+            path.append(next_node)
+
+        loop_key = (current, next_node)
+        if loop_key in visited:
+            return []
+        visited.add(loop_key)
+        current = next_node
+
+    return []
+
+
+def _add_path_delta(tensor, path, delta, slice_idx):
+    pair_updates = 0
+    non_adjacent_updates = 0
+    for to_pos in range(1, len(path)):
+        to_sat = path[to_pos]
+        for from_pos in range(to_pos):
+            from_sat = path[from_pos]
+            if from_sat == to_sat:
+                continue
+            tensor[from_sat, to_sat, slice_idx] += delta
+            pair_updates += 1
+            if to_pos - from_pos > 1:
+                non_adjacent_updates += 1
+    return pair_updates, non_adjacent_updates
 
 
 def _read_isls(path):

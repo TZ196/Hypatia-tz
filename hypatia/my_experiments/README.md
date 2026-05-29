@@ -44,6 +44,11 @@ python tensor_cli.py iridium_top50_60s traffic --time-slice-s 5
 python tensor_cli.py iridium_top50_60s rtt --time-slice-s 5
 python tensor_cli.py iridium_top50_60s sat-connectivity --bin-ms 1000
 python tensor_cli.py iridium_top50_60s sat-path-flow
+python tensor_cli.py iridium_top50_60s sat-path-flow-routes --time-slice-s 1
 ```
 
 同样地，`iridium_top30_10s` 的调用方法一致，只需要把实验名替换为 `iridium_top30_10s`。
+
+其中 `sat-path-flow-routes` 使用 ns-3 实际 TCP progress bytes 和 satgenpy `fstate_*.txt`
+恢复每个时间片的完整卫星路径，并把每条 flow 的新增 bytes 展开到路径上所有
+“前序卫星 -> 后续卫星”矩阵位置。

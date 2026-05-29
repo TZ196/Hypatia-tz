@@ -30,7 +30,14 @@ def parse_args():
     parser.add_argument("experiment", help="Experiment directory name under experiments/")
     parser.add_argument(
         "kind",
-        choices=["traffic", "rtt", "sat-connectivity", "sat-path-flow", "verify-sat-connectivity"],
+        choices=[
+            "traffic",
+            "rtt",
+            "sat-connectivity",
+            "sat-path-flow",
+            "sat-path-flow-routes",
+            "verify-sat-connectivity",
+        ],
     )
     parser.add_argument("--time-slice-s", type=int, default=5)
     parser.add_argument("--bin-ms", type=int, default=1000)
@@ -50,6 +57,8 @@ def main():
         tensor_tools.build_sat_connectivity_tensor(config, bin_ms=args.bin_ms)
     elif args.kind == "sat-path-flow":
         tensor_tools.build_sat_path_tensors(config)
+    elif args.kind == "sat-path-flow-routes":
+        tensor_tools.build_sat_path_flow_from_routes(config, time_slice_s=args.time_slice_s)
     elif args.kind == "verify-sat-connectivity":
         if args.path is None:
             raise ValueError("--path is required for verify-sat-connectivity")
