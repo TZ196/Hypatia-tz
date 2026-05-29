@@ -29,7 +29,7 @@ Use `python run_pipeline.py --threads 4 --build` if ns-3 has not been built on t
 - ISL mode: `isls_plus_grid`
 - Routing algorithm: `algorithm_free_one_only_over_isls`
 - Traffic: full-mesh OD flows, all starting at `0 ns`, sized by time-zone activity and bounded by configured bandwidth/duration
-- Satellite path tracking: enabled, one matrix CSV per metric per time slice under `runs/main/logs_ns3/sat_path_flow/`
+- Satellite path tracking: enabled, receiver-side satellite monitor, one matrix CSV per metric per time slice under `runs/main/logs_ns3/sat_path_flow/`
 
 ## Tensorize Satellite Path Flow
 
@@ -40,4 +40,4 @@ cd /home/xuke/tz-Hypatia/hypatia/my_experiments
 python tensor_cli.py iridium_top50_60s sat-path-flow
 ```
 
-This writes `sat_path_bytes_tensor.npy`, `sat_path_packets_tensor.npy`, `sat_path_drop_bytes_tensor.npy`, and `sat_path_drop_packets_tensor.npy` to `runs/main/data/`.
+This writes `sat_path_bytes_tensor.npy`, `sat_path_packets_tensor.npy`, `sat_path_drop_bytes_tensor.npy`, and `sat_path_drop_packets_tensor.npy` to `runs/main/data/`. The matrix diagonal is only used for single-satellite paths, so traffic that enters and leaves the satellite network through satellite `A` contributes to `A->A`.

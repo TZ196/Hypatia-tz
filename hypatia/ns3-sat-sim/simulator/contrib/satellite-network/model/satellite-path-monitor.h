@@ -29,11 +29,8 @@ public:
 
   static bool IsEnabled (void);
   static bool IsSatelliteNode (uint32_t nodeId);
-  static void RecordIslTransmit (
-      Ptr<const Packet> packet,
-      uint32_t fromSatelliteId,
-      uint32_t toSatelliteId,
-      uint64_t bytes);
+  static void RecordSatelliteReceive (Ptr<Packet> packet, uint32_t satelliteId, uint64_t bytes);
+  static void RecordSatelliteToGroundSend (Ptr<Packet> packet, uint32_t satelliteId, uint64_t bytes);
   static void RecordSatelliteDrop (Ptr<Packet> packet, uint32_t satelliteId, uint64_t bytes);
   static void RecordGroundStationReceive (Ptr<Packet> packet);
   static void WriteCsvMatrices (void);
@@ -47,10 +44,17 @@ private:
     uint64_t dropPackets = 0;
   };
 
-  static uint64_t PacketKey (Ptr<const Packet> packet);
+  static bool GetExistingPathId (Ptr<const Packet> packet, uint64_t& pathId);
+  static uint64_t GetOrCreatePathId (Ptr<Packet> packet);
   static void EndPathIfPresent (Ptr<Packet> packet);
   static void ObservePathLength (uint64_t pathLength);
   static void Increment (uint32_t fromSat, uint32_t toSat, uint64_t bytes, bool isDrop);
+  static void IncrementAtTimeBin (
+      uint64_t timeBin,
+      uint32_t fromSat,
+      uint32_t toSat,
+      uint64_t bytes,
+      bool isDrop);
   static uint64_t CurrentTimeBin (void);
   static uint64_t MatrixKey (uint64_t timeBin, uint32_t fromSat, uint32_t toSat);
   static void WriteMetricMatrix (
@@ -64,12 +68,16 @@ private:
   static int64_t s_intervalNs;
   static uint64_t s_numTimeBins;
   static std::string s_logsDir;
+  static uint64_t s_nextPathId;
   static uint64_t s_maxPathLengthSeen;
-  static uint64_t s_islTransmitEvents;
+  static uint64_t s_satelliteReceiveEvents;
+  static uint64_t s_pathTagCreations;
+  static uint64_t s_singleSatellitePathObservations;
   static uint64_t s_transitPairObservations;
   static uint64_t s_nonAdjacentPairObservations;
   static uint64_t s_nonAdjacentBytes;
-  static std::unordered_map<uint64_t, std::vector<uint32_t> > s_packetSatellites;
+  static std::unordered_map<uint64_t, std::vector<uint32_t> > s_pathSatellites;
+  static std::unordered_map<uint64_t, uint64_t> s_pathFirstSeenBins;
   static std::vector<uint64_t> s_pathLengthHistogram;
   static std::map<uint64_t, Counter> s_counters;
 };

@@ -256,11 +256,6 @@ PointToPointLaserNetDevice::TransmitStart (Ptr<Packet> p)
   m_phyTxBeginTrace (m_currentPkt);
   TrackUtilization(true);
   TrackBytes(p->GetSize());
-  SatellitePathMonitor::RecordIslTransmit (
-      p,
-      m_node->GetId (),
-      m_destination_node->GetId (),
-      p->GetSize ());
 
   Time txTime = m_bps.CalculateBytesTxTime (p->GetSize ());
   Time txCompleteTime = txTime + m_tInterframeGap;
@@ -369,6 +364,7 @@ PointToPointLaserNetDevice::Receive (Ptr<Packet> packet)
       m_snifferTrace (packet);
       m_promiscSnifferTrace (packet);
       m_phyRxEndTrace (packet);
+      SatellitePathMonitor::RecordSatelliteReceive (packet, m_node->GetId (), packet->GetSize ());
 
       //
       // Trace sinks will expect complete packets, not packets without some of the

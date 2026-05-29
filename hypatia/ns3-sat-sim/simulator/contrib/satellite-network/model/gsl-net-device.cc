@@ -270,6 +270,10 @@ GSLNetDevice::TransmitStart (Ptr<Packet> p, const Address dest)
       SatellitePathMonitor::RecordSatelliteDrop (p, m_node->GetId (), p->GetSize ());
       m_phyTxDropTrace (p);
     }
+  else if (SatellitePathMonitor::IsSatelliteNode (m_node->GetId ()))
+    {
+      SatellitePathMonitor::RecordSatelliteToGroundSend (p, m_node->GetId (), p->GetSize ());
+    }
 
   NS_LOG_FUNCTION (this << " done");
   return result;
@@ -368,6 +372,14 @@ GSLNetDevice::Receive (Ptr<Packet> packet)
       m_snifferTrace (packet);
       m_promiscSnifferTrace (packet);
       m_phyRxEndTrace (packet);
+      if (SatellitePathMonitor::IsSatelliteNode (m_node->GetId ()))
+        {
+          SatellitePathMonitor::RecordSatelliteReceive (packet, m_node->GetId (), packet->GetSize ());
+        }
+      else
+        {
+          SatellitePathMonitor::RecordGroundStationReceive (packet);
+        }
 
       //
       // Trace sinks will expect complete packets, not packets without some of the
@@ -382,10 +394,6 @@ GSLNetDevice::Receive (Ptr<Packet> packet)
       // normal receive callback sees.
       //
       ProcessHeader (packet, protocol);
-      if (!SatellitePathMonitor::IsSatelliteNode (m_node->GetId ()))
-        {
-          SatellitePathMonitor::RecordGroundStationReceive (packet);
-        }
 
       if (!m_promiscCallback.IsNull ())
         {

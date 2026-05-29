@@ -33,7 +33,7 @@
 python run_pipeline.py --threads 4
 ```
 
-`experiments/iridium_top50_60s/` 和 `experiments/iridium_top30_10s/` 是当前隔离实验示例。后续新实验应新建自己的 `experiments/<experiment_name>/`，只放该实验的配置和调用脚本；运行时生成的 `input/`、`gen_data/`、`runs/`、`logs/` 也只属于该实验。
+`experiments/iridium_top50_60s/` 和 `experiments/iridium_top30_10s/` 是当前隔离实验示例。`experiments/iridium_path_validation_10s/` 是卫星路径流量矩阵的最小验证实验，使用 New-York-Newark 到 Sydney 的单条长距离流检查路径对是否被展开统计。后续新实验应新建自己的 `experiments/<experiment_name>/`，只放该实验的配置和调用脚本；运行时生成的 `input/`、`gen_data/`、`runs/`、`logs/` 也只属于该实验。
 
 ## 通用张量工具
 
@@ -48,7 +48,14 @@ python tensor_cli.py iridium_top50_60s sat-path-flow-routes --time-slice-s 1
 ```
 
 同样地，`iridium_top30_10s` 的调用方法一致，只需要把实验名替换为 `iridium_top30_10s`。
+验证实验可以替换为 `iridium_path_validation_10s`。
 
-其中 `sat-path-flow-routes` 使用 ns-3 实际 TCP progress bytes 和 satgenpy `fstate_*.txt`
+其中 `sat-path-flow` 是推荐的卫星路径流量矩阵来源，直接读取 ns-3 C++ 接收侧
+satellite monitor 输出的矩阵 CSV。对于多跳路径，会把同一批 bytes 计入所有
+历史卫星到当前卫星的位置，例如路径 `A->B->C` 计入 `A->B`、`A->C` 和
+`B->C`。只有当地面站到地面站的业务在卫星网络内只经过一颗卫星 A 时，
+才计入对角线 `A->A`。
+
+`sat-path-flow-routes` 是辅助/对照工具，使用 ns-3 实际 TCP progress bytes 和 satgenpy `fstate_*.txt`
 恢复每个时间片的完整卫星路径，并把每条 flow 的新增 bytes 展开到路径上所有
 “前序卫星 -> 后续卫星”矩阵位置。
