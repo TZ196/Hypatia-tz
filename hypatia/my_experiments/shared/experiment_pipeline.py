@@ -5,6 +5,7 @@
 """
 
 import csv
+import math
 import os
 import random
 import shutil
@@ -41,9 +42,38 @@ def _write_ground_stations_basic(path, stations):
             )
 
 
+def _generate_uniform_global_ground_stations(config):
+    count = config.NUM_GROUND_STATIONS
+    seed = getattr(config, "GROUND_STATION_RANDOM_SEED", getattr(config, "TRAFFIC_SEED", 123456789))
+    rng = random.Random(seed)
+    lon_offset = rng.random() * 360.0
+    golden_angle = math.pi * (3.0 - math.sqrt(5.0))
+    stations = []
+
+    for idx in range(count):
+        z = 1.0 - 2.0 * ((idx + 0.5) / count)
+        latitude = math.degrees(math.asin(z))
+        longitude = ((math.degrees(idx * golden_angle) + lon_offset + 180.0) % 360.0) - 180.0
+        stations.append({
+            "local_gs_id": idx,
+            "source_gs_id": idx,
+            "name": f"UniformGlobal-{idx:03d}",
+            "latitude": round(latitude, 6),
+            "longitude": round(longitude, 6),
+            "altitude_m": 0.0,
+        })
+
+    _write_ground_stations_basic(config.GROUND_STATIONS_FILE, stations)
+    return stations
+
+
 def _select_ground_stations(config):
-    source_path = config.DEFAULT_GROUND_STATIONS_SOURCE
     selection_mode = getattr(config, "GROUND_STATION_SELECTION_MODE", "copy")
+
+    if selection_mode == "uniform_global":
+        return _generate_uniform_global_ground_stations(config)
+
+    source_path = config.DEFAULT_GROUND_STATIONS_SOURCE
 
     if selection_mode == "copy":
         shutil.copyfile(source_path, config.GROUND_STATIONS_FILE)
@@ -53,7 +83,7 @@ def _select_ground_stations(config):
         return stations
 
     if selection_mode != "random_sample":
-        raise ValueError("GROUND_STATION_SELECTION_MODE must be 'copy' or 'random_sample'")
+        raise ValueError("GROUND_STATION_SELECTION_MODE must be 'copy', 'random_sample', or 'uniform_global'")
 
     candidates = read_ground_stations(source_path)
     if len(candidates) < config.NUM_GROUND_STATIONS:

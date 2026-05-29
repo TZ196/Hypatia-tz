@@ -193,15 +193,19 @@ TRAFFIC_RANDOMNESS_SIGMA = 0.35
 TRAFFIC_CAPACITY_SCOPE = "single_bottleneck"
 
 # 业务负载比例
-# 5000 条 flow 共享该总预算；目标是覆盖路径而不是让每条 flow 都超大
+# 作为默认预算公式的备用参数；本实验优先使用 TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES
 TRAFFIC_OFFERED_LOAD = 1.2
 
+# 目标平均每条 flow 大小。
+# 目的是让大量 flow 在 60s 内持续存在，从而提升路径矩阵覆盖密度。
+TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES = 10_000_000
+
 # 单条 TCP flow 的最小大小，单位：字节
-TRAFFIC_MIN_FLOW_SIZE_BYTES = 100_000
+TRAFFIC_MIN_FLOW_SIZE_BYTES = 2_000_000
 
 # 单条 TCP flow 的最大大小，单位：字节
 # None 表示不额外限制最大 flow 大小
-TRAFFIC_MAX_FLOW_SIZE_BYTES = None
+TRAFFIC_MAX_FLOW_SIZE_BYTES = 30_000_000
 
 # 参考带宽，单位：Mbit/s
 # 流量生成时会以这个带宽作为容量参考

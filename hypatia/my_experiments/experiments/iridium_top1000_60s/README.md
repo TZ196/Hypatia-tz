@@ -1,4 +1,4 @@
-## Iridium Top50 60s
+## Iridium Top1000 60s
 
 This is an isolated experiment definition for a dense Iridium path-flow run: 66 Iridium satellites, the global top-1000 city ground stations, 5000 long-distance directed OD flows, and 60 seconds of simulation.
 
@@ -14,7 +14,7 @@ export PATH="/usr/local/cuda/bin:/usr/local/bin:/usr/bin:/bin"
 source venv/bin/activate
 export CC=gcc-9 CXX=g++-9
 
-cd my_experiments/experiments/iridium_top50_60s
+cd my_experiments/experiments/iridium_top1000_60s
 python run_pipeline.py --threads 4
 ```
 
@@ -40,7 +40,7 @@ After ns-3 finishes, convert the path matrix CSV files into tensors:
 
 ```bash
 cd /home/xuke/tz-Hypatia/hypatia/my_experiments
-python tensor_cli.py iridium_top50_60s sat-path-flow
+python tensor_cli.py iridium_top1000_60s sat-path-flow
 ```
 
 This writes `sat_path_bytes_tensor.npy`, `sat_path_packets_tensor.npy`, `sat_path_drop_bytes_tensor.npy`, and `sat_path_drop_packets_tensor.npy` to `runs/main/data/`. The matrix diagonal is only used for single-satellite paths, so traffic that enters and leaves the satellite network through satellite `A` contributes to `A->A`.

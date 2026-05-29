@@ -96,6 +96,8 @@ def generate_traffic_plan(config) -> tuple[list[TrafficFlow], list[list[int]]]:
       - TRAFFIC_RANDOMNESS_SIGMA
       - TRAFFIC_DISTANCE_WEIGHT_POWER
       - TRAFFIC_PREFERRED_REGION_WEIGHT
+      - TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES
+      - TRAFFIC_TOTAL_BUDGET_BYTES
       - TRAFFIC_MIN_FLOW_SIZE_BYTES
       - TRAFFIC_MAX_FLOW_SIZE_BYTES
       - TRAFFIC_REFERENCE_BANDWIDTH_MBIT_PER_S
@@ -324,6 +326,21 @@ def _great_circle_distance_km(lat1: float, lon1: float, lat2: float, lon2: float
 
 
 def _traffic_budget_bytes(config) -> int:
+    explicit_budget = getattr(config, "TRAFFIC_TOTAL_BUDGET_BYTES", None)
+    if explicit_budget is not None:
+        if explicit_budget <= 0:
+            raise ValueError("TRAFFIC_TOTAL_BUDGET_BYTES must be > 0")
+        return int(explicit_budget)
+
+    target_avg = getattr(config, "TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES", None)
+    flow_count = getattr(config, "TRAFFIC_FLOW_COUNT", None)
+    if target_avg is not None:
+        if target_avg <= 0:
+            raise ValueError("TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES must be > 0")
+        if flow_count is None:
+            raise ValueError("TRAFFIC_FLOW_COUNT is required when using TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES")
+        return int(target_avg * flow_count)
+
     reference_mbps = getattr(config, "TRAFFIC_REFERENCE_BANDWIDTH_MBIT_PER_S", None)
     if reference_mbps is None:
         reference_mbps = config.DATA_RATE_MBIT_PER_S
@@ -581,6 +598,8 @@ def describe_traffic_plan(config, flows: list[TrafficFlow]) -> dict[str, str]:
         "randomness_sigma": str(getattr(config, "TRAFFIC_RANDOMNESS_SIGMA", 0.15)),
         "capacity_scope": getattr(config, "TRAFFIC_CAPACITY_SCOPE", "per_ground_station"),
         "offered_load": str(getattr(config, "TRAFFIC_OFFERED_LOAD", 0.2)),
+        "target_avg_flow_size_byte": str(getattr(config, "TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES", "")),
+        "total_budget_byte_override": str(getattr(config, "TRAFFIC_TOTAL_BUDGET_BYTES", "")),
         "flow_count": str(len(flows)),
         "min_distance_km": str(getattr(config, "TRAFFIC_MIN_DISTANCE_KM", "")),
         "max_flows_per_city_role": str(getattr(config, "TRAFFIC_MAX_FLOWS_PER_CITY_ROLE", "")),
