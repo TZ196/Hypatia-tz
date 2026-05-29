@@ -19,3 +19,6 @@ Thumbs.db
 **/logs_ns3/
 **/*.npz
 **/*.npy
+
+hypatia/venv/
+hypatia/ns3-sat-sim/

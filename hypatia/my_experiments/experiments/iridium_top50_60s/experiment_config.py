@@ -145,6 +145,10 @@ GS_START_NODE_ID = NUM_SATELLITES
 # ============================================================
 
 # 流量对模式
+"""随机模式：
+TRAFFIC_PAIR_MODE = "random"
+TRAFFIC_FLOW_COUNT = 300
+"""
 # full_mesh 表示所有地面站之间都可能产生流量
 TRAFFIC_PAIR_MODE = "full_mesh"
 
