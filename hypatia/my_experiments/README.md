@@ -33,14 +33,17 @@
 python run_pipeline.py --threads 4
 ```
 
-`experiments/iridium_top50_1800s/` 是一个隔离实验示例：Iridium 星座、top50 地面站、仿真 1800s。后续新实验应新建自己的 `experiments/<experiment_name>/`，只放该实验的配置和调用脚本；运行时生成的 `input/`、`gen_data/`、`runs/`、`logs/` 也只属于该实验。
+`experiments/iridium_top50_60s/` 和 `experiments/iridium_top30_10s/` 是当前隔离实验示例。后续新实验应新建自己的 `experiments/<experiment_name>/`，只放该实验的配置和调用脚本；运行时生成的 `input/`、`gen_data/`、`runs/`、`logs/` 也只属于该实验。
 
 ## 通用张量工具
 
 后处理张量脚本不放在单个实验目录里，统一通过 `tensor_cli.py` 调用：
 
 ```bash
-python tensor_cli.py iridium_top50_1800s traffic --time-slice-s 5
-python tensor_cli.py iridium_top50_1800s rtt --time-slice-s 5
-python tensor_cli.py iridium_top50_1800s sat-connectivity --bin-ms 1000
+python tensor_cli.py iridium_top50_60s traffic --time-slice-s 5
+python tensor_cli.py iridium_top50_60s rtt --time-slice-s 5
+python tensor_cli.py iridium_top50_60s sat-connectivity --bin-ms 1000
+python tensor_cli.py iridium_top50_60s sat-path-flow
 ```
+
+同样地，`iridium_top30_10s` 的调用方法一致，只需要把实验名替换为 `iridium_top30_10s`。
