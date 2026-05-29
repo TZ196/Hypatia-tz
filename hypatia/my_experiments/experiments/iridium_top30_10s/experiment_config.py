@@ -15,7 +15,9 @@ RUNS_DIR = EXPERIMENT_DIR / "runs"
 LOGS_DIR = EXPERIMENT_DIR / "logs"
 
 SHARED_INPUT_DIR = MY_EXPERIMENTS_DIR / "shared" / "input_data"
-DEFAULT_GROUND_STATIONS_SOURCE = SHARED_INPUT_DIR / "ground_stations_top_30.basic.txt"
+DEFAULT_GROUND_STATIONS_SOURCE = SHARED_INPUT_DIR / "ground_stations_top_1000.basic.txt"
+GROUND_STATION_SELECTION_MODE = "random_sample"
+GROUND_STATION_RANDOM_SEED = 123456789
 GROUND_STATIONS_FILE = INPUT_DIR / "ground_stations.basic.txt"
 GROUND_STATIONS_MANIFEST = INPUT_DIR / "ground_stations_manifest.csv"
 TRAFFIC_SCHEDULE_FILE = INPUT_DIR / "schedule.csv"
@@ -27,7 +29,7 @@ SATELLITE_NETWORK = "iridium_780"
 DURATION_S = 10
 TIME_STEP_MS = 1000
 ISL_MODE = "isls_plus_grid"
-GS_SELECTION = "ground_stations_experiment_top_30"
+GS_SELECTION = "ground_stations_random_top1000_30"
 ROUTING_ALGORITHM = "algorithm_free_one_only_over_isls"
 
 NUM_SATELLITES = 66

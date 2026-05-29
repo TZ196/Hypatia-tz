@@ -14,27 +14,8 @@
 
 #include "ns3/packet.h"
 #include "ns3/ptr.h"
-#include "ns3/tag.h"
-#include "ns3/type-id.h"
 
 namespace ns3 {
-
-class SatellitePathPacketTag : public Tag
-{
-public:
-  static TypeId GetTypeId (void);
-  virtual TypeId GetInstanceTypeId (void) const;
-  virtual uint32_t GetSerializedSize (void) const;
-  virtual void Serialize (TagBuffer i) const;
-  virtual void Deserialize (TagBuffer i);
-  virtual void Print (std::ostream &os) const;
-
-  void SetPathId (uint64_t pathId);
-  uint64_t GetPathId (void) const;
-
-private:
-  uint64_t m_pathId = 0;
-};
 
 class SatellitePathMonitor
 {
@@ -62,9 +43,9 @@ private:
     uint64_t dropPackets = 0;
   };
 
-  static uint64_t EnsurePathId (Ptr<Packet> packet);
-  static bool GetPathId (Ptr<Packet> packet, uint64_t& pathId);
+  static uint64_t PacketKey (Ptr<const Packet> packet);
   static void EndPathIfPresent (Ptr<Packet> packet);
+  static void ObservePathLength (uint64_t pathLength);
   static void Increment (uint32_t fromSat, uint32_t toSat, uint64_t bytes, bool isDrop);
   static uint64_t CurrentTimeBin (void);
   static uint64_t MatrixKey (uint64_t timeBin, uint32_t fromSat, uint32_t toSat);
@@ -72,14 +53,20 @@ private:
       const std::string& dir,
       const std::string& filename,
       const std::vector<uint64_t>& values);
+  static void WritePathLengthHistogram (std::ostream& metadata);
 
   static bool s_enabled;
   static uint32_t s_numSatellites;
   static int64_t s_intervalNs;
   static uint64_t s_numTimeBins;
   static std::string s_logsDir;
-  static uint64_t s_nextPathId;
-  static std::unordered_map<uint64_t, std::vector<uint32_t> > s_pathSatellites;
+  static uint64_t s_maxPathLengthSeen;
+  static uint64_t s_satelliteReceiveEvents;
+  static uint64_t s_transitPairObservations;
+  static uint64_t s_nonAdjacentPairObservations;
+  static uint64_t s_nonAdjacentBytes;
+  static std::unordered_map<uint64_t, std::vector<uint32_t> > s_packetSatellites;
+  static std::vector<uint64_t> s_pathLengthHistogram;
   static std::map<uint64_t, Counter> s_counters;
 };
 

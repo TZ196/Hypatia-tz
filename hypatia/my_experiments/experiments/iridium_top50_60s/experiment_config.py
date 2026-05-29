@@ -58,8 +58,13 @@ LOGS_DIR = EXPERIMENT_DIR / "logs"
 # shared/input_data 目录，存放多个实验可共用的输入数据
 SHARED_INPUT_DIR = MY_EXPERIMENTS_DIR / "shared" / "input_data"
 
-# 默认的 top 50 地面站文件
-DEFAULT_GROUND_STATIONS_SOURCE = SHARED_INPUT_DIR / "ground_stations_top_50.basic.txt"
+# 候选地面站文件：实验会从 top1000 城市中随机抽取 NUM_GROUND_STATIONS 个
+DEFAULT_GROUND_STATIONS_SOURCE = SHARED_INPUT_DIR / "ground_stations_top_1000.basic.txt"
+
+# 地面站选择方式
+# random_sample 表示从 DEFAULT_GROUND_STATIONS_SOURCE 可复现随机抽样
+GROUND_STATION_SELECTION_MODE = "random_sample"
+GROUND_STATION_RANDOM_SEED = 123456789
 
 # 当前实验实际使用的地面站文件
 # pipeline 会把 DEFAULT_GROUND_STATIONS_SOURCE 复制到这里
@@ -110,8 +115,8 @@ TIME_STEP_MS = 1000
 ISL_MODE = "isls_plus_grid"
 
 # 地面站选择模式
-# 表示使用当前实验中的 top 50 地面站
-GS_SELECTION = "ground_stations_experiment_top_50"
+# 表示使用当前实验从 top1000 随机抽取的 50 个地面站
+GS_SELECTION = "ground_stations_random_top1000_50"
 
 # 路由算法
 # algorithm_free_one_only_over_isls 表示只通过星间链路转发，

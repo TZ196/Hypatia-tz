@@ -6,6 +6,7 @@
 
 import csv
 import os
+import random
 import shutil
 import subprocess
 from pathlib import Path
@@ -31,11 +32,60 @@ def read_ground_stations(path):
     return stations
 
 
+def _write_ground_stations_basic(path, stations):
+    with open(path, "w", encoding="utf-8") as f:
+        for station in stations:
+            f.write(
+                f"{station['local_gs_id']},{station['name']},"
+                f"{station['latitude']},{station['longitude']},{station['altitude_m']}\n"
+            )
+
+
+def _select_ground_stations(config):
+    source_path = config.DEFAULT_GROUND_STATIONS_SOURCE
+    selection_mode = getattr(config, "GROUND_STATION_SELECTION_MODE", "copy")
+
+    if selection_mode == "copy":
+        shutil.copyfile(source_path, config.GROUND_STATIONS_FILE)
+        stations = read_ground_stations(config.GROUND_STATIONS_FILE)
+        for station in stations:
+            station["source_gs_id"] = station["local_gs_id"]
+        return stations
+
+    if selection_mode != "random_sample":
+        raise ValueError("GROUND_STATION_SELECTION_MODE must be 'copy' or 'random_sample'")
+
+    candidates = read_ground_stations(source_path)
+    if len(candidates) < config.NUM_GROUND_STATIONS:
+        raise ValueError(
+            f"候选地面站不足：需要 {config.NUM_GROUND_STATIONS} 个，"
+            f"但 {source_path} 只有 {len(candidates)} 个"
+        )
+
+    seed = getattr(config, "GROUND_STATION_RANDOM_SEED", getattr(config, "TRAFFIC_SEED", 123456789))
+    rng = random.Random(seed)
+    selected = rng.sample(candidates, config.NUM_GROUND_STATIONS)
+    selected.sort(key=lambda station: station["local_gs_id"])
+
+    stations = []
+    for new_id, station in enumerate(selected):
+        stations.append({
+            "local_gs_id": new_id,
+            "source_gs_id": station["local_gs_id"],
+            "name": station["name"],
+            "latitude": station["latitude"],
+            "longitude": station["longitude"],
+            "altitude_m": station["altitude_m"],
+        })
+
+    _write_ground_stations_basic(config.GROUND_STATIONS_FILE, stations)
+    return stations
+
+
 def define_ground_stations(config):
     config.INPUT_DIR.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(config.DEFAULT_GROUND_STATIONS_SOURCE, config.GROUND_STATIONS_FILE)
 
-    stations = read_ground_stations(config.GROUND_STATIONS_FILE)
+    stations = _select_ground_stations(config)
     if len(stations) != config.NUM_GROUND_STATIONS:
         raise ValueError(
             f"地面站数量不匹配：期望 {config.NUM_GROUND_STATIONS} 个，实际得到 {len(stations)} 个"
@@ -44,7 +94,7 @@ def define_ground_stations(config):
     with open(config.GROUND_STATIONS_MANIFEST, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f,
-            fieldnames=["local_gs_id", "name", "latitude", "longitude", "altitude_m"],
+            fieldnames=["local_gs_id", "source_gs_id", "name", "latitude", "longitude", "altitude_m"],
         )
         writer.writeheader()
         writer.writerows(stations)

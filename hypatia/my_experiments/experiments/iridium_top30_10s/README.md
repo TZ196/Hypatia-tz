@@ -1,6 +1,6 @@
 ## Iridium Top30 10s
 
-This is an isolated experiment definition for a short Iridium run: 66 Iridium satellites, top 30 city ground stations, and 10 seconds of simulation.
+This is an isolated experiment definition for a short Iridium run: 66 Iridium satellites, 30 city ground stations randomly sampled from the top-1000 city list, and 10 seconds of simulation.
 
 The shared workflow lives in `my_experiments/shared/experiment_pipeline.py`. This directory only provides this experiment's configuration and wrapper script.
 
@@ -20,7 +20,7 @@ Use `--build` after C++ changes to rebuild `ns3-sat-sim`.
 ## Definition
 
 - Constellation: `iridium_780`
-- Ground stations: top 30 cities from `shared/input_data/ground_stations_top_30.basic.txt`
+- Ground stations: 30 cities randomly sampled from `shared/input_data/ground_stations_top_1000.basic.txt` with `GROUND_STATION_RANDOM_SEED`
 - Duration: `10` seconds
 - Dynamic-state update interval: `1000` ms
 - ISL mode: `isls_plus_grid`

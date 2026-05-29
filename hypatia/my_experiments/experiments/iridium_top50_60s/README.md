@@ -1,6 +1,6 @@
 ## Iridium Top50 60s
 
-This is an isolated experiment definition for a short Iridium run: 66 Iridium satellites, top 50 city ground stations, and 60 seconds of simulation.
+This is an isolated experiment definition for a short Iridium run: 66 Iridium satellites, 50 city ground stations randomly sampled from the top-1000 city list, and 60 seconds of simulation.
 
 The shared workflow lives in `my_experiments/shared/experiment_pipeline.py`. This directory only provides this experiment's configuration and wrapper script.
 
@@ -23,7 +23,7 @@ Use `python run_pipeline.py --threads 4 --build` if ns-3 has not been built on t
 ## Definition
 
 - Constellation: `iridium_780`
-- Ground stations: top 50 cities from `shared/input_data/ground_stations_top_50.basic.txt`
+- Ground stations: 50 cities randomly sampled from `shared/input_data/ground_stations_top_1000.basic.txt` with `GROUND_STATION_RANDOM_SEED`
 - Duration: `60` seconds
 - Dynamic-state update interval: `1000` ms
 - ISL mode: `isls_plus_grid`

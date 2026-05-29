@@ -17,68 +17,20 @@
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("SatellitePathMonitor");
-NS_OBJECT_ENSURE_REGISTERED (SatellitePathPacketTag);
 
 bool SatellitePathMonitor::s_enabled = false;
 uint32_t SatellitePathMonitor::s_numSatellites = 0;
 int64_t SatellitePathMonitor::s_intervalNs = 0;
 uint64_t SatellitePathMonitor::s_numTimeBins = 0;
 std::string SatellitePathMonitor::s_logsDir = "";
-uint64_t SatellitePathMonitor::s_nextPathId = 1;
-std::unordered_map<uint64_t, std::vector<uint32_t> > SatellitePathMonitor::s_pathSatellites;
+uint64_t SatellitePathMonitor::s_maxPathLengthSeen = 0;
+uint64_t SatellitePathMonitor::s_satelliteReceiveEvents = 0;
+uint64_t SatellitePathMonitor::s_transitPairObservations = 0;
+uint64_t SatellitePathMonitor::s_nonAdjacentPairObservations = 0;
+uint64_t SatellitePathMonitor::s_nonAdjacentBytes = 0;
+std::unordered_map<uint64_t, std::vector<uint32_t> > SatellitePathMonitor::s_packetSatellites;
+std::vector<uint64_t> SatellitePathMonitor::s_pathLengthHistogram;
 std::map<uint64_t, SatellitePathMonitor::Counter> SatellitePathMonitor::s_counters;
-
-TypeId
-SatellitePathPacketTag::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::SatellitePathPacketTag")
-    .SetParent<Tag> ()
-    .SetGroupName ("SatelliteNetwork")
-    .AddConstructor<SatellitePathPacketTag> ();
-  return tid;
-}
-
-TypeId
-SatellitePathPacketTag::GetInstanceTypeId (void) const
-{
-  return GetTypeId ();
-}
-
-uint32_t
-SatellitePathPacketTag::GetSerializedSize (void) const
-{
-  return 8;
-}
-
-void
-SatellitePathPacketTag::Serialize (TagBuffer i) const
-{
-  i.WriteU64 (m_pathId);
-}
-
-void
-SatellitePathPacketTag::Deserialize (TagBuffer i)
-{
-  m_pathId = i.ReadU64 ();
-}
-
-void
-SatellitePathPacketTag::Print (std::ostream &os) const
-{
-  os << "path_id=" << m_pathId;
-}
-
-void
-SatellitePathPacketTag::SetPathId (uint64_t pathId)
-{
-  m_pathId = pathId;
-}
-
-uint64_t
-SatellitePathPacketTag::GetPathId (void) const
-{
-  return m_pathId;
-}
 
 void
 SatellitePathMonitor::Initialize (
@@ -92,8 +44,13 @@ SatellitePathMonitor::Initialize (
   s_numSatellites = numSatellites;
   s_intervalNs = intervalNs;
   s_logsDir = logsDir;
-  s_nextPathId = 1;
-  s_pathSatellites.clear ();
+  s_maxPathLengthSeen = 0;
+  s_satelliteReceiveEvents = 0;
+  s_transitPairObservations = 0;
+  s_nonAdjacentPairObservations = 0;
+  s_nonAdjacentBytes = 0;
+  s_packetSatellites.clear ();
+  s_pathLengthHistogram.clear ();
   s_counters.clear ();
 
   if (!s_enabled)
@@ -107,6 +64,7 @@ SatellitePathMonitor::Initialize (
   NS_ABORT_MSG_IF (simulationEndTimeNs <= 0, "simulation_end_time_ns must be positive");
 
   s_numTimeBins = (simulationEndTimeNs + s_intervalNs - 1) / s_intervalNs;
+  s_pathLengthHistogram = std::vector<uint64_t> (s_numSatellites + 1, 0);
   std::cout << "  > Satellite path tracking.. enabled, interval " << s_intervalNs
             << " ns, bins " << s_numTimeBins << std::endl;
 }
@@ -131,20 +89,29 @@ SatellitePathMonitor::RecordSatelliteReceive (Ptr<Packet> packet, uint32_t satel
       return;
     }
 
-  uint64_t pathId = EnsurePathId (packet);
-  std::vector<uint32_t>& path = s_pathSatellites[pathId];
+  uint64_t packetKey = PacketKey (packet);
+  std::vector<uint32_t>& path = s_packetSatellites[packetKey];
+  s_satelliteReceiveEvents += 1;
 
-  for (uint32_t fromSat : path)
+  for (uint32_t pathIndex = 0; pathIndex < path.size (); pathIndex++)
     {
+      uint32_t fromSat = path[pathIndex];
       if (fromSat != satelliteId)
         {
           Increment (fromSat, satelliteId, bytes, false);
+          s_transitPairObservations += 1;
+          if (pathIndex + 1 < path.size ())
+            {
+              s_nonAdjacentPairObservations += 1;
+              s_nonAdjacentBytes += bytes;
+            }
         }
     }
 
   if (std::find (path.begin (), path.end (), satelliteId) == path.end ())
     {
       path.push_back (satelliteId);
+      ObservePathLength (path.size ());
     }
 }
 
@@ -156,14 +123,9 @@ SatellitePathMonitor::RecordSatelliteDrop (Ptr<Packet> packet, uint32_t satellit
       return;
     }
 
-  uint64_t pathId;
-  if (!GetPathId (packet, pathId))
-    {
-      return;
-    }
-
-  auto it = s_pathSatellites.find (pathId);
-  if (it == s_pathSatellites.end ())
+  uint64_t packetKey = PacketKey (packet);
+  auto it = s_packetSatellites.find (packetKey);
+  if (it == s_packetSatellites.end ())
     {
       return;
     }
@@ -176,7 +138,7 @@ SatellitePathMonitor::RecordSatelliteDrop (Ptr<Packet> packet, uint32_t satellit
         }
     }
 
-  s_pathSatellites.erase (it);
+  s_packetSatellites.erase (it);
 }
 
 void
@@ -190,49 +152,28 @@ SatellitePathMonitor::RecordGroundStationReceive (Ptr<Packet> packet)
 }
 
 uint64_t
-SatellitePathMonitor::EnsurePathId (Ptr<Packet> packet)
+SatellitePathMonitor::PacketKey (Ptr<const Packet> packet)
 {
-  uint64_t pathId;
-  if (GetPathId (packet, pathId))
-    {
-      if (s_pathSatellites.find (pathId) == s_pathSatellites.end ())
-        {
-          s_pathSatellites[pathId] = std::vector<uint32_t> ();
-        }
-      return pathId;
-    }
-
-  pathId = s_nextPathId++;
-  SatellitePathPacketTag tag;
-  tag.SetPathId (pathId);
-  packet->AddPacketTag (tag);
-  s_pathSatellites[pathId] = std::vector<uint32_t> ();
-  return pathId;
-}
-
-bool
-SatellitePathMonitor::GetPathId (Ptr<Packet> packet, uint64_t& pathId)
-{
-  SatellitePathPacketTag tag;
-  if (!packet->PeekPacketTag (tag))
-    {
-      return false;
-    }
-  pathId = tag.GetPathId ();
-  return true;
+  return packet->GetUid ();
 }
 
 void
 SatellitePathMonitor::EndPathIfPresent (Ptr<Packet> packet)
 {
-  uint64_t pathId;
-  if (!GetPathId (packet, pathId))
+  s_packetSatellites.erase (PacketKey (packet));
+}
+
+void
+SatellitePathMonitor::ObservePathLength (uint64_t pathLength)
+{
+  if (pathLength > s_maxPathLengthSeen)
     {
-      return;
+      s_maxPathLengthSeen = pathLength;
     }
-  s_pathSatellites.erase (pathId);
-  SatellitePathPacketTag tag;
-  packet->RemovePacketTag (tag);
+  if (pathLength < s_pathLengthHistogram.size ())
+    {
+      s_pathLengthHistogram[pathLength] += 1;
+    }
 }
 
 void
@@ -305,6 +246,14 @@ SatellitePathMonitor::WriteCsvMatrices (void)
   metadata << "num_time_bins=" << s_numTimeBins << std::endl;
   metadata << "interval_ns=" << s_intervalNs << std::endl;
   metadata << "layout=matrix[from_sat][to_sat]" << std::endl;
+  metadata << "tracking_key=packet_uid" << std::endl;
+  metadata << "max_path_length_seen=" << s_maxPathLengthSeen << std::endl;
+  metadata << "satellite_receive_events=" << s_satelliteReceiveEvents << std::endl;
+  metadata << "transit_pair_observations=" << s_transitPairObservations << std::endl;
+  metadata << "non_adjacent_pair_observations=" << s_nonAdjacentPairObservations << std::endl;
+  metadata << "non_adjacent_bytes=" << s_nonAdjacentBytes << std::endl;
+  metadata << "open_packet_paths_at_finish=" << s_packetSatellites.size () << std::endl;
+  WritePathLengthHistogram (metadata);
   metadata.close ();
 
   uint64_t matrixSize = static_cast<uint64_t> (s_numSatellites) * s_numSatellites;
@@ -358,6 +307,28 @@ SatellitePathMonitor::WriteMetricMatrix (
       fs << std::endl;
     }
   fs.close ();
+}
+
+void
+SatellitePathMonitor::WritePathLengthHistogram (std::ostream& metadata)
+{
+  metadata << "path_length_histogram=";
+  bool first = true;
+  for (uint32_t pathLength = 1; pathLength < s_pathLengthHistogram.size (); pathLength++)
+    {
+      uint64_t count = s_pathLengthHistogram[pathLength];
+      if (count == 0)
+        {
+          continue;
+        }
+      if (!first)
+        {
+          metadata << ",";
+        }
+      metadata << pathLength << ":" << count;
+      first = false;
+    }
+  metadata << std::endl;
 }
 
 } // namespace ns3
