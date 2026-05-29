@@ -338,9 +338,15 @@ def build_sat_path_flow_from_routes(config, time_slice_s=1, output_name="sat_pat
     skipped = 0
     deltas = 0
     routed_deltas = 0
+    single_sat_deltas = 0
     unrouted_deltas = 0
+    invalid_next_hop_deltas = 0
+    missing_route_deltas = 0
+    loop_deltas = 0
+    max_hop_deltas = 0
     expanded_pair_updates = 0
     expanded_non_adjacent_updates = 0
+    path_length_histogram = {}
 
     for flow_id in sorted(flow_endpoints):
         progress_path = _logs_dir(config) / f"tcp_flow_{flow_id}_progress.csv"
@@ -373,22 +379,28 @@ def build_sat_path_flow_from_routes(config, time_slice_s=1, output_name="sat_pat
                                 getattr(config, "TIME_STEP_MS", time_slice_s * 1000),
                             )
                             route_key = (fstate_time, src_node, dst_node)
-                            path = path_cache.get(route_key)
-                            if path is None:
+                            route_result = path_cache.get(route_key)
+                            if route_result is None:
                                 fstate = fstate_cache.get(fstate_time)
                                 if fstate is None:
                                     fstate = _read_fstate(dynamic_state_dir / f"fstate_{fstate_time}.txt")
                                     fstate_cache[fstate_time] = fstate
-                                path = _satellite_path_for_flow(
+                                route_result = _satellite_path_for_flow(
                                     fstate,
                                     src_node,
                                     dst_node,
                                     config.NUM_SATELLITES,
                                 )
-                                path_cache[route_key] = path
+                                path_cache[route_key] = route_result
 
-                            if len(path) >= 2:
+                            status = route_result["status"]
+                            path = route_result["path"]
+                            path_length_histogram[len(path)] = path_length_histogram.get(len(path), 0) + 1
+
+                            if status == "ok" and len(path) >= 1:
                                 routed_deltas += 1
+                                if len(path) == 1:
+                                    single_sat_deltas += 1
                                 pair_updates, non_adjacent_updates = _add_path_delta(
                                     tensor,
                                     path,
@@ -399,6 +411,14 @@ def build_sat_path_flow_from_routes(config, time_slice_s=1, output_name="sat_pat
                                 expanded_non_adjacent_updates += non_adjacent_updates
                             else:
                                 unrouted_deltas += 1
+                                if status == "missing_route":
+                                    missing_route_deltas += 1
+                                elif status == "invalid_next_hop":
+                                    invalid_next_hop_deltas += 1
+                                elif status == "loop":
+                                    loop_deltas += 1
+                                elif status == "max_hops_exceeded":
+                                    max_hop_deltas += 1
 
                 prev_time = time_ns
                 prev_bytes = bytes_cum
@@ -428,16 +448,22 @@ def build_sat_path_flow_from_routes(config, time_slice_s=1, output_name="sat_pat
         f.write(f"skipped_flows={skipped}\n")
         f.write(f"positive_deltas={deltas}\n")
         f.write(f"routed_deltas={routed_deltas}\n")
-        f.write(f"unrouted_or_single_sat_deltas={unrouted_deltas}\n")
+        f.write(f"single_sat_deltas={single_sat_deltas}\n")
+        f.write(f"unrouted_deltas={unrouted_deltas}\n")
+        f.write(f"missing_route_deltas={missing_route_deltas}\n")
+        f.write(f"invalid_next_hop_deltas={invalid_next_hop_deltas}\n")
+        f.write(f"loop_deltas={loop_deltas}\n")
+        f.write(f"max_hop_exceeded_deltas={max_hop_deltas}\n")
         f.write(f"expanded_pair_updates={expanded_pair_updates}\n")
         f.write(f"expanded_non_adjacent_updates={expanded_non_adjacent_updates}\n")
+        f.write(f"path_length_histogram={_format_histogram(path_length_histogram)}\n")
         f.write(f"available_fstate_files={len(available_fstates)}\n")
 
     print(f"Saved route-derived satellite path tensor {tensor.shape} to {out_path}")
     print(f"Saved per-slice CSV matrices to {csv_dir}")
     print(f"Metadata: {metadata_path}")
     print(f"Processed {processed} flows, skipped {skipped}")
-    print(f"Positive deltas {deltas}, routed {routed_deltas}, unrouted/single-sat {unrouted_deltas}")
+    print(f"Positive deltas {deltas}, routed {routed_deltas}, single-sat {single_sat_deltas}, unrouted {unrouted_deltas}")
     return out_path
 
 
@@ -540,27 +566,34 @@ def _satellite_path_for_flow(fstate, src_node, dst_node, num_satellites):
 
     for _ in range(max_hops):
         if current == dst_node:
-            return path
+            return {"status": "ok", "path": path}
         state_key = (current, dst_node)
         if state_key not in fstate:
-            return []
+            return {"status": "missing_route", "path": path}
 
         next_node = fstate[state_key]
+        if next_node < 0:
+            return {"status": "invalid_next_hop", "path": path}
         if next_node < num_satellites and next_node not in path:
             path.append(next_node)
 
         loop_key = (current, next_node)
-        if loop_key in visited:
-            return []
+        if loop_key in visited or next_node == current:
+            return {"status": "loop", "path": path}
         visited.add(loop_key)
         current = next_node
 
-    return []
+    return {"status": "max_hops_exceeded", "path": path}
 
 
 def _add_path_delta(tensor, path, delta, slice_idx):
     pair_updates = 0
     non_adjacent_updates = 0
+    if len(path) == 1:
+        sat = path[0]
+        tensor[sat, sat, slice_idx] += delta
+        return 1, 0
+
     for to_pos in range(1, len(path)):
         to_sat = path[to_pos]
         for from_pos in range(to_pos):
@@ -572,6 +605,10 @@ def _add_path_delta(tensor, path, delta, slice_idx):
             if to_pos - from_pos > 1:
                 non_adjacent_updates += 1
     return pair_updates, non_adjacent_updates
+
+
+def _format_histogram(histogram):
+    return ",".join(f"{key}:{histogram[key]}" for key in sorted(histogram))
 
 
 def _read_isls(path):
