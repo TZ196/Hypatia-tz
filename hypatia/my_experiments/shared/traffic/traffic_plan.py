@@ -43,6 +43,16 @@ class GroundStation:
     altitude_m: float
 
 
+@dataclass(frozen=True)
+class CandidatePair:
+    src: int
+    dst: int
+    distance_km: float
+    src_region: str
+    dst_region: str
+    priority: int
+
+
 def read_ground_stations(path: Path) -> list[GroundStation]:
     stations = []
     with open(path, "r", encoding="utf-8") as f:
@@ -74,16 +84,18 @@ def generate_traffic_plan(config) -> tuple[list[TrafficFlow], list[list[int]]]:
       - DATA_RATE_MBIT_PER_S
 
     Optional config fields:
-      - TRAFFIC_PAIR_MODE: full_mesh | random
-      - TRAFFIC_FLOW_COUNT: only for random mode
+      - TRAFFIC_PAIR_MODE: full_mesh | random | long_distance_balanced
+      - TRAFFIC_FLOW_COUNT: for random and long_distance_balanced modes
       - TRAFFIC_SEED
       - TRAFFIC_START_TIME_NS
       - TRAFFIC_OFFERED_LOAD
       - TRAFFIC_CAPACITY_SCOPE: per_ground_station | single_bottleneck
       - TRAFFIC_ACTIVITY_PROFILE: geant | flat
       - TRAFFIC_REFERENCE_UTC_HOUR
-      - TRAFFIC_OD_WEIGHT_MODE: source_destination | source_only
+      - TRAFFIC_OD_WEIGHT_MODE: source_destination | source_only | distance | distance_source_destination
       - TRAFFIC_RANDOMNESS_SIGMA
+      - TRAFFIC_DISTANCE_WEIGHT_POWER
+      - TRAFFIC_PREFERRED_REGION_WEIGHT
       - TRAFFIC_MIN_FLOW_SIZE_BYTES
       - TRAFFIC_MAX_FLOW_SIZE_BYTES
       - TRAFFIC_REFERENCE_BANDWIDTH_MBIT_PER_S
@@ -96,10 +108,10 @@ def generate_traffic_plan(config) -> tuple[list[TrafficFlow], list[list[int]]]:
         )
 
     rng = random.Random(getattr(config, "TRAFFIC_SEED", 123456789))
-    pairs = _select_pairs(config, [station.local_id for station in stations], rng)
+    pairs = _select_pairs(config, stations, rng)
     total_budget = _traffic_budget_bytes(config)
     activity_by_id = _station_activity_by_id(config, stations)
-    pair_weights = _pair_weights(config, pairs, activity_by_id, rng)
+    pair_weights = _pair_weights(config, pairs, activity_by_id, stations, rng)
     sizes = _allocate_flow_sizes(config, pair_weights, total_budget)
 
     matrix = [[0 for _ in stations] for _ in stations]
@@ -109,7 +121,7 @@ def generate_traffic_plan(config) -> tuple[list[TrafficFlow], list[list[int]]]:
     for flow_id, ((src_local, dst_local), size_byte) in enumerate(zip(pairs, sizes)):
         src_node_id = config.GS_START_NODE_ID + src_local
         dst_node_id = config.GS_START_NODE_ID + dst_local
-        matrix[src_local][dst_local] = size_byte
+        matrix[src_local][dst_local] += size_byte
         flows.append(
             TrafficFlow(
                 flow_id=flow_id,
@@ -145,8 +157,9 @@ def station_activity_rows(config) -> list[dict[str, str]]:
     return rows
 
 
-def _select_pairs(config, local_ids: list[int], rng: random.Random) -> list[tuple[int, int]]:
+def _select_pairs(config, stations: list[GroundStation], rng: random.Random) -> list[tuple[int, int]]:
     mode = getattr(config, "TRAFFIC_PAIR_MODE", "full_mesh")
+    local_ids = [station.local_id for station in stations]
     pairs = [(src, dst) for src in local_ids for dst in local_ids if src != dst]
 
     if mode == "full_mesh":
@@ -161,6 +174,12 @@ def _select_pairs(config, local_ids: list[int], rng: random.Random) -> list[tupl
         rng.shuffle(pairs)
         return sorted(pairs[:flow_count])
 
+    if mode == "long_distance_balanced":
+        flow_count = getattr(config, "TRAFFIC_FLOW_COUNT", None)
+        if flow_count is None:
+            raise ValueError("TRAFFIC_FLOW_COUNT is required when TRAFFIC_PAIR_MODE='long_distance_balanced'")
+        return _select_long_distance_balanced_pairs(config, stations, flow_count, rng)
+
     explicit_pairs = getattr(config, "TRAFFIC_PAIRS", None)
     if mode == "explicit" and explicit_pairs is not None:
         valid_ids = set(local_ids)
@@ -174,6 +193,134 @@ def _select_pairs(config, local_ids: list[int], rng: random.Random) -> list[tupl
         return result
 
     raise ValueError(f"Unknown TRAFFIC_PAIR_MODE: {mode}")
+
+
+def _select_long_distance_balanced_pairs(
+    config,
+    stations: list[GroundStation],
+    flow_count: int,
+    rng: random.Random,
+) -> list[tuple[int, int]]:
+    if flow_count < 1:
+        raise ValueError("TRAFFIC_FLOW_COUNT must be positive")
+    if len(stations) < 2:
+        raise ValueError("At least two ground stations are required")
+
+    min_distance_km = getattr(config, "TRAFFIC_MIN_DISTANCE_KM", 6000)
+    max_per_city_role = getattr(config, "TRAFFIC_MAX_FLOWS_PER_CITY_ROLE", None)
+    preferred_region_pairs = set(getattr(config, "TRAFFIC_PREFERRED_REGION_PAIRS", _default_region_pairs()))
+    candidates = []
+
+    for src in stations:
+        src_region = _region_for_station(src)
+        for dst in stations:
+            if src.local_id == dst.local_id:
+                continue
+            dst_region = _region_for_station(dst)
+            if src_region == dst_region:
+                continue
+            distance_km = _great_circle_distance_km(src.latitude, src.longitude, dst.latitude, dst.longitude)
+            if distance_km < min_distance_km:
+                continue
+            priority = 0 if (src_region, dst_region) in preferred_region_pairs else 1
+            candidates.append(
+                CandidatePair(
+                    src=src.local_id,
+                    dst=dst.local_id,
+                    distance_km=distance_km,
+                    src_region=src_region,
+                    dst_region=dst_region,
+                    priority=priority,
+                )
+            )
+
+    if len(candidates) < flow_count:
+        raise ValueError(
+            f"Not enough long-distance candidate OD pairs: need {flow_count}, "
+            f"got {len(candidates)} with min distance {min_distance_km} km"
+        )
+
+    rng.shuffle(candidates)
+    candidates.sort(key=lambda pair: (pair.priority, -pair.distance_km))
+
+    if max_per_city_role is None:
+        max_per_city_role = max(1, math.ceil(flow_count / len(stations) * 1.5))
+
+    selected = []
+    used = set()
+    source_count = {station.local_id: 0 for station in stations}
+    dest_count = {station.local_id: 0 for station in stations}
+    current_cap = max_per_city_role
+
+    while len(selected) < flow_count:
+        added_this_round = 0
+        for pair in candidates:
+            if len(selected) >= flow_count:
+                break
+            if (pair.src, pair.dst) in used:
+                continue
+            if source_count[pair.src] >= current_cap or dest_count[pair.dst] >= current_cap:
+                continue
+
+            selected.append((pair.src, pair.dst))
+            used.add((pair.src, pair.dst))
+            source_count[pair.src] += 1
+            dest_count[pair.dst] += 1
+            added_this_round += 1
+
+        if added_this_round == 0:
+            # Relax the per-city cap only if the target count cannot be reached.
+            current_cap += 1
+
+    # Keep output deterministic and readable by flow ID while preserving selected pairs.
+    return selected
+
+
+def _default_region_pairs():
+    return [
+        ("Asia", "South America"),
+        ("Asia", "Africa"),
+        ("North America", "Oceania"),
+        ("Europe", "Oceania"),
+        ("Africa", "North America"),
+        ("South America", "Europe"),
+    ]
+
+
+def _region_for_station(station: GroundStation) -> str:
+    lat = station.latitude
+    lon = station.longitude
+
+    if lon >= -170 and lon <= -30 and lat >= -60 and lat <= 15:
+        return "South America"
+    if lon >= -170 and lon <= -30 and lat > 15:
+        return "North America"
+    if lon >= 110 and lon <= 180 and lat <= 0:
+        return "Oceania"
+    if lon >= 110 and lon <= 180 and lat > 0:
+        return "Asia"
+    if lon >= -30 and lon <= 60 and lat >= 35:
+        return "Europe"
+    if lon >= -20 and lon <= 55 and lat < 35 and lat >= -40:
+        return "Africa"
+    if lon > 55 and lon < 110:
+        return "Asia"
+    if lon < -170 or lon > 180:
+        return "Oceania"
+    return "Other"
+
+
+def _great_circle_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    earth_radius_km = 6371.0
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    a = (
+        math.sin(delta_phi / 2.0) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0) ** 2
+    )
+    return 2.0 * earth_radius_km * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
 
 
 def _traffic_budget_bytes(config) -> int:
@@ -236,12 +383,18 @@ def _pair_weights(
     config,
     pairs: list[tuple[int, int]],
     activity_by_id: dict[int, float],
+    stations: list[GroundStation],
     rng: random.Random,
 ) -> list[float]:
     mode = getattr(config, "TRAFFIC_OD_WEIGHT_MODE", "source_destination")
     sigma = getattr(config, "TRAFFIC_RANDOMNESS_SIGMA", 0.15)
     if sigma < 0:
         raise ValueError("TRAFFIC_RANDOMNESS_SIGMA must be >= 0")
+
+    station_by_id = {station.local_id: station for station in stations}
+    preferred_region_pairs = set(getattr(config, "TRAFFIC_PREFERRED_REGION_PAIRS", _default_region_pairs()))
+    distance_power = getattr(config, "TRAFFIC_DISTANCE_WEIGHT_POWER", 1.0)
+    preferred_region_weight = getattr(config, "TRAFFIC_PREFERRED_REGION_WEIGHT", 1.0)
 
     weights = []
     for src, dst in pairs:
@@ -251,8 +404,28 @@ def _pair_weights(
             base = src_activity * dst_activity
         elif mode == "source_only":
             base = src_activity
+        elif mode in {"distance", "distance_source_destination"}:
+            src_station = station_by_id[src]
+            dst_station = station_by_id[dst]
+            distance_km = _great_circle_distance_km(
+                src_station.latitude,
+                src_station.longitude,
+                dst_station.latitude,
+                dst_station.longitude,
+            )
+            distance_weight = max(distance_km / 1000.0, 1.0) ** distance_power
+            region_weight = preferred_region_weight if (
+                _region_for_station(src_station),
+                _region_for_station(dst_station),
+            ) in preferred_region_pairs else 1.0
+            base = distance_weight * region_weight
+            if mode == "distance_source_destination":
+                base *= src_activity * dst_activity
         else:
-            raise ValueError("TRAFFIC_OD_WEIGHT_MODE must be 'source_destination' or 'source_only'")
+            raise ValueError(
+                "TRAFFIC_OD_WEIGHT_MODE must be 'source_destination', 'source_only', "
+                "'distance', or 'distance_source_destination'"
+            )
 
         noise = rng.lognormvariate(0.0, sigma) if sigma > 0 else 1.0
         weights.append(max(1e-12, base * noise))
@@ -349,6 +522,49 @@ def write_station_activity_csv(path: Path, rows: list[dict[str, str]]) -> None:
         writer.writerows(rows)
 
 
+def write_flow_pair_details_csv(path: Path, config, flows: list[TrafficFlow]) -> None:
+    stations = read_ground_stations(config.GROUND_STATIONS_FILE)
+    station_by_id = {station.local_id: station for station in stations}
+    fieldnames = [
+        "flow_id",
+        "src_local_id",
+        "src_name",
+        "src_region",
+        "src_latitude",
+        "src_longitude",
+        "dst_local_id",
+        "dst_name",
+        "dst_region",
+        "dst_latitude",
+        "dst_longitude",
+        "distance_km",
+        "size_byte",
+        "start_time_ns",
+    ]
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for flow in flows:
+            src = station_by_id[flow.src_local_id]
+            dst = station_by_id[flow.dst_local_id]
+            writer.writerow({
+                "flow_id": flow.flow_id,
+                "src_local_id": flow.src_local_id,
+                "src_name": src.name,
+                "src_region": _region_for_station(src),
+                "src_latitude": src.latitude,
+                "src_longitude": src.longitude,
+                "dst_local_id": flow.dst_local_id,
+                "dst_name": dst.name,
+                "dst_region": _region_for_station(dst),
+                "dst_latitude": dst.latitude,
+                "dst_longitude": dst.longitude,
+                "distance_km": f"{_great_circle_distance_km(src.latitude, src.longitude, dst.latitude, dst.longitude):.3f}",
+                "size_byte": flow.size_byte,
+                "start_time_ns": flow.start_time_ns,
+            })
+
+
 def describe_traffic_plan(config, flows: list[TrafficFlow]) -> dict[str, str]:
     total_bytes = sum(flow.size_byte for flow in flows)
     avg_bytes = total_bytes / len(flows) if flows else 0
@@ -366,6 +582,8 @@ def describe_traffic_plan(config, flows: list[TrafficFlow]) -> dict[str, str]:
         "capacity_scope": getattr(config, "TRAFFIC_CAPACITY_SCOPE", "per_ground_station"),
         "offered_load": str(getattr(config, "TRAFFIC_OFFERED_LOAD", 0.2)),
         "flow_count": str(len(flows)),
+        "min_distance_km": str(getattr(config, "TRAFFIC_MIN_DISTANCE_KM", "")),
+        "max_flows_per_city_role": str(getattr(config, "TRAFFIC_MAX_FLOWS_PER_CITY_ROLE", "")),
         "total_size_byte": str(total_bytes),
         "min_flow_size_byte": str(min_bytes),
         "avg_flow_size_byte": str(math.floor(avg_bytes)),

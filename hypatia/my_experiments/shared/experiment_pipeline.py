@@ -109,6 +109,7 @@ def design_traffic(config):
         describe_traffic_plan,
         generate_traffic_plan,
         station_activity_rows,
+        write_flow_pair_details_csv,
         write_od_matrix_csv,
         write_schedule,
         write_station_activity_csv,
@@ -120,6 +121,9 @@ def design_traffic(config):
     write_schedule(config.TRAFFIC_SCHEDULE_FILE, flows)
     write_od_matrix_csv(config.TRAFFIC_MATRIX_FILE, traffic_matrix)
     write_station_activity_csv(config.TRAFFIC_ACTIVITY_FILE, station_activity_rows(config))
+    flow_details_file = getattr(config, "TRAFFIC_FLOW_DETAILS_FILE", None)
+    if flow_details_file is not None:
+        write_flow_pair_details_csv(flow_details_file, config, flows)
 
     summary = describe_traffic_plan(config, flows)
     with open(config.TRAFFIC_DESIGN_FILE, "w", encoding="utf-8") as f:
@@ -136,12 +140,16 @@ def design_traffic(config):
         f.write(f"schedule={config.TRAFFIC_SCHEDULE_FILE.name}\n")
         f.write(f"traffic_matrix={config.TRAFFIC_MATRIX_FILE.name}\n")
         f.write(f"station_activity={config.TRAFFIC_ACTIVITY_FILE.name}\n")
+        if flow_details_file is not None:
+            f.write(f"traffic_flow_details={flow_details_file.name}\n")
 
     print(f"已生成 {len(flows)} 条 TCP 流")
     print(f"总流量: {summary['total_size_byte']} 字节")
     print(f"流量调度文件: {config.TRAFFIC_SCHEDULE_FILE}")
     print(f"流量矩阵文件: {config.TRAFFIC_MATRIX_FILE}")
     print(f"地面站活跃度文件: {config.TRAFFIC_ACTIVITY_FILE}")
+    if flow_details_file is not None:
+        print(f"流量 OD 明细文件: {flow_details_file}")
     print(f"流量设计摘要文件: {config.TRAFFIC_DESIGN_FILE}")
 
 
@@ -189,7 +197,11 @@ def _write_ns3_config(config, config_path, flow_ids):
         "SATELLITE_PATH_TRACKING_INTERVAL_NS",
         getattr(config, "ISL_UTILIZATION_TRACKING_INTERVAL_NS", 1_000_000_000),
     )
-    flow_id_set = "set(" + ",".join(str(flow_id) for flow_id in flow_ids) + ")"
+    if getattr(config, "ENABLE_TCP_FLOW_LOGGING", True):
+        enabled_flow_ids = getattr(config, "TCP_FLOW_LOGGING_FLOW_IDS", flow_ids)
+    else:
+        enabled_flow_ids = []
+    flow_id_set = "set(" + ",".join(str(flow_id) for flow_id in enabled_flow_ids) + ")"
 
     lines = [
         f"simulation_end_time_ns={config.DURATION_S * 1000 * 1000 * 1000}",

@@ -58,12 +58,12 @@ LOGS_DIR = EXPERIMENT_DIR / "logs"
 # shared/input_data 目录，存放多个实验可共用的输入数据
 SHARED_INPUT_DIR = MY_EXPERIMENTS_DIR / "shared" / "input_data"
 
-# 候选地面站文件：实验会从 top1000 城市中随机抽取 NUM_GROUND_STATIONS 个
+# 候选地面站文件：当前实验直接使用全球 top1000 城市作为地面站候选/端点
 DEFAULT_GROUND_STATIONS_SOURCE = SHARED_INPUT_DIR / "ground_stations_top_1000.basic.txt"
 
 # 地面站选择方式
-# random_sample 表示从 DEFAULT_GROUND_STATIONS_SOURCE 可复现随机抽样
-GROUND_STATION_SELECTION_MODE = "random_sample"
+# copy 表示直接使用 DEFAULT_GROUND_STATIONS_SOURCE 中的 top1000 城市
+GROUND_STATION_SELECTION_MODE = "copy"
 GROUND_STATION_RANDOM_SEED = 123456789
 
 # 当前实验实际使用的地面站文件
@@ -94,6 +94,9 @@ TRAFFIC_MATRIX_FILE = INPUT_DIR / "traffic_matrix_bytes.csv"
 # 记录每个地面站作为源/目的的活跃程度
 TRAFFIC_ACTIVITY_FILE = INPUT_DIR / "station_activity.csv"
 
+# 每条 flow 的源/目的城市、区域和距离，便于检查 5000 条 OD 的地理分布
+TRAFFIC_FLOW_DETAILS_FILE = INPUT_DIR / "traffic_flow_details.csv"
+
 
 # ============================================================
 # 5. 卫星网络基础配置
@@ -115,8 +118,8 @@ TIME_STEP_MS = 1000
 ISL_MODE = "isls_plus_grid"
 
 # 地面站选择模式
-# 表示使用当前实验从 top1000 随机抽取的 50 个地面站
-GS_SELECTION = "ground_stations_random_top1000_50"
+# 表示当前实验使用 top1000 城市作为地面站端点
+GS_SELECTION = "ground_stations_top1000_dense_5000"
 
 # 路由算法
 # algorithm_free_one_only_over_isls 表示只通过星间链路转发，
@@ -132,7 +135,7 @@ ROUTING_ALGORITHM = "algorithm_free_one_only_over_isls"
 NUM_SATELLITES = 66
 
 # 地面站数量
-NUM_GROUND_STATIONS = 50
+NUM_GROUND_STATIONS = 1000
 
 # 地面站节点 ID 的起始编号
 # 如果卫星节点编号是 0 ~ 65，
@@ -145,12 +148,19 @@ GS_START_NODE_ID = NUM_SATELLITES
 # ============================================================
 
 # 流量对模式
-"""随机模式：
-TRAFFIC_PAIR_MODE = "random"
-TRAFFIC_FLOW_COUNT = 300
-"""
-# full_mesh 表示所有地面站之间都可能产生流量
-TRAFFIC_PAIR_MODE = "full_mesh"
+# long_distance_balanced 表示从 top1000 城市中构造远距离、跨洲、跨半球的有向 OD flow
+TRAFFIC_PAIR_MODE = "long_distance_balanced"
+TRAFFIC_FLOW_COUNT = 5000
+TRAFFIC_MIN_DISTANCE_KM = 6000
+TRAFFIC_MAX_FLOWS_PER_CITY_ROLE = 5
+TRAFFIC_PREFERRED_REGION_PAIRS = [
+    ("Asia", "South America"),
+    ("Asia", "Africa"),
+    ("North America", "Oceania"),
+    ("Europe", "Oceania"),
+    ("Africa", "North America"),
+    ("South America", "Europe"),
+]
 
 # 流量生成随机种子
 # 固定种子可以保证每次生成的流量一致，方便复现实验
@@ -161,28 +171,30 @@ TRAFFIC_SEED = 123456789
 TRAFFIC_START_TIME_NS = 0
 
 # 地面站活跃度分布配置
-# geant 表示参考 GEANT 网络流量/活跃度特征
-TRAFFIC_ACTIVITY_PROFILE = "geant"
+# flat 表示不再按时区活跃度偏置，使 5000 条验证流更均匀
+TRAFFIC_ACTIVITY_PROFILE = "flat"
 
 # 参考 UTC 小时
 # 用于选择某个时间段的流量活跃度模式
 TRAFFIC_REFERENCE_UTC_HOUR = 0
 
 # OD 权重模式
-# source_destination 表示同时考虑源地面站和目的地面站权重
-TRAFFIC_OD_WEIGHT_MODE = "source_destination"
+# distance 表示按源/目的城市的大圆距离分配预算，距离越远的 flow 越大
+TRAFFIC_OD_WEIGHT_MODE = "distance"
+TRAFFIC_DISTANCE_WEIGHT_POWER = 1.0
+TRAFFIC_PREFERRED_REGION_WEIGHT = 1.3
 
 # 流量随机扰动强度
-# 数值越大，不同 OD 对之间的随机差异越明显
-TRAFFIC_RANDOMNESS_SIGMA = 0.15
+# 给 flow 大小加入可复现扰动，避免所有 flow 大小完全相同
+TRAFFIC_RANDOMNESS_SIGMA = 0.35
 
 # 容量约束范围
-# per_ground_station 表示按每个地面站的参考带宽来约束总流量
-TRAFFIC_CAPACITY_SCOPE = "per_ground_station"
+# single_bottleneck 表示用一个参考瓶颈容量控制总流量，避免 5000 条流过大
+TRAFFIC_CAPACITY_SCOPE = "single_bottleneck"
 
 # 业务负载比例
-# 0.2 表示提供负载为参考带宽的 20%
-TRAFFIC_OFFERED_LOAD = 0.2
+# 5000 条 flow 共享该总预算；目标是覆盖路径而不是让每条 flow 都超大
+TRAFFIC_OFFERED_LOAD = 1.2
 
 # 单条 TCP flow 的最小大小，单位：字节
 TRAFFIC_MIN_FLOW_SIZE_BYTES = 100_000
@@ -194,6 +206,9 @@ TRAFFIC_MAX_FLOW_SIZE_BYTES = None
 # 参考带宽，单位：Mbit/s
 # 流量生成时会以这个带宽作为容量参考
 TRAFFIC_REFERENCE_BANDWIDTH_MBIT_PER_S = 100
+
+# 本实验只需要卫星路径流量矩阵，不需要生成 tcp_flow_<id>_progress/rtt/cwnd 明细文件
+ENABLE_TCP_FLOW_LOGGING = False
 
 
 # ============================================================
