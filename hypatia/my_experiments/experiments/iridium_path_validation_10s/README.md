@@ -1,11 +1,21 @@
 ## Iridium Path Validation 10s
 
 This experiment is designed only to validate the online satellite path-flow
-monitor. It uses Iridium, two far-apart ground stations, and one explicit TCP
-flow sized close to one 10-second 100 Mbit/s bottleneck:
+monitor. It uses Iridium, 20 globally distributed ground stations, and 10
+explicit long-haul TCP flows. Each source and destination pair is intentionally
+far apart so the path should cross multiple satellites.
 
 ```text
 New-York-Newark -> Sydney
+Los-Angeles-Long-Beach-Santa-Ana -> Johannesburg
+London -> Auckland
+Tokyo -> Buenos-Aires
+Delhi -> Santiago
+Shanghai -> Cape-Town
+Sao-Paulo -> Melbourne
+Ciudad-de-Mexico -> Moskva-Moscow
+Al-Qahirah-Cairo -> Rio-de-Janeiro
+Mumbai-Bombay -> Paris
 ```
 
 The expected behavior is easy to inspect. If the packet path is:
@@ -46,11 +56,12 @@ python validate_path_flow.py
 
 The script prints:
 
-- the single validation flow
+- the 10 validation flows
 - monitor metadata
 - nonzero satellite pairs from `logs_ns3/sat_path_flow/bytes`
-- fstate-derived path expansion as a reference
-- missing or extra satellite pairs
+- fstate-derived forward data path expansion for every flow
+- fstate-derived reverse TCP ACK/control path expansion for every flow
+- missing forward/reverse pairs and truly unexpected observed pairs
 
 To build tensors after inspection:
 

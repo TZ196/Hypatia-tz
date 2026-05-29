@@ -28,17 +28,28 @@ SATELLITE_NETWORK = "iridium_780"
 DURATION_S = 10
 TIME_STEP_MS = 1000
 ISL_MODE = "isls_plus_grid"
-GS_SELECTION = "ground_stations_validation_ny_sydney_2"
+GS_SELECTION = "ground_stations_validation_global_20"
 ROUTING_ALGORITHM = "algorithm_free_one_only_over_isls"
 
 NUM_SATELLITES = 66
-NUM_GROUND_STATIONS = 2
+NUM_GROUND_STATIONS = 20
 GS_START_NODE_ID = NUM_SATELLITES
 
-# One explicit long-haul flow: New York -> Sydney. This keeps the resulting
-# path-flow matrix small enough to inspect by eye.
+# Ten explicit long-haul flows. The local IDs correspond to the fixed
+# ground_stations_source.basic.txt order.
 TRAFFIC_PAIR_MODE = "explicit"
-TRAFFIC_PAIRS = [(0, 1)]
+TRAFFIC_PAIRS = [
+    (0, 10),   # New York -> Sydney
+    (1, 11),   # Los Angeles -> Johannesburg
+    (2, 12),   # London -> Auckland
+    (3, 13),   # Tokyo -> Buenos Aires
+    (4, 14),   # Delhi -> Santiago
+    (5, 15),   # Shanghai -> Cape Town
+    (6, 16),   # Sao Paulo -> Melbourne
+    (7, 17),   # Mexico City -> Moscow
+    (8, 18),   # Cairo -> Rio de Janeiro
+    (9, 19),   # Mumbai -> Paris
+]
 TRAFFIC_SEED = 123456789
 TRAFFIC_START_TIME_NS = 0
 TRAFFIC_ACTIVITY_PROFILE = "flat"
@@ -46,7 +57,7 @@ TRAFFIC_REFERENCE_UTC_HOUR = 0
 TRAFFIC_OD_WEIGHT_MODE = "source_destination"
 TRAFFIC_RANDOMNESS_SIGMA = 0
 TRAFFIC_CAPACITY_SCOPE = "single_bottleneck"
-TRAFFIC_OFFERED_LOAD = 1.0
+TRAFFIC_OFFERED_LOAD = 10.0
 TRAFFIC_MIN_FLOW_SIZE_BYTES = 1
 TRAFFIC_MAX_FLOW_SIZE_BYTES = None
 TRAFFIC_REFERENCE_BANDWIDTH_MBIT_PER_S = 100

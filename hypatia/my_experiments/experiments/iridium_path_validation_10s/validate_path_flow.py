@@ -16,15 +16,30 @@ from shared import tensor_tools
 
 
 def _read_schedule():
+    flows = []
     with open(config.run_dir() / "schedule.csv", "r", encoding="utf-8") as f:
-        row = next(csv.reader(f))
-    return {
-        "flow_id": int(row[0]),
-        "src_node": int(row[1]),
-        "dst_node": int(row[2]),
-        "size_bytes": int(row[3]),
-        "start_time_ns": int(row[4]),
-    }
+        for row in csv.reader(f):
+            if not row:
+                continue
+            flows.append({
+                "flow_id": int(row[0]),
+                "src_node": int(row[1]),
+                "dst_node": int(row[2]),
+                "size_bytes": int(row[3]),
+                "start_time_ns": int(row[4]),
+            })
+    return flows
+
+
+def _read_ground_station_names():
+    names = {}
+    path = config.GROUND_STATIONS_MANIFEST
+    if not path.exists():
+        return names
+    with open(path, "r", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            names[int(row["local_gs_id"])] = row["name"]
+    return names
 
 
 def _read_metadata():
@@ -68,7 +83,7 @@ def _expanded_pairs(path):
     return pairs
 
 
-def _expected_paths(schedule):
+def _expected_paths(src_node, dst_node):
     dynamic_state_dir = config.generated_satellite_network_dir() / config.dynamic_state_dir_name()
     available = tensor_tools._available_fstate_times(dynamic_state_dir)
     if not available:
@@ -80,8 +95,8 @@ def _expected_paths(schedule):
         fstate = tensor_tools._read_cumulative_fstate(dynamic_state_dir, available, fstate_time, cache)
         result = tensor_tools._satellite_path_for_flow(
             fstate,
-            schedule["src_node"],
-            schedule["dst_node"],
+            src_node,
+            dst_node,
             config.NUM_SATELLITES,
         )
         path = tuple(result["path"])
@@ -89,19 +104,43 @@ def _expected_paths(schedule):
     return paths_by_tuple
 
 
+def _describe_flow(flow, names):
+    src_local = flow["src_node"] - config.GS_START_NODE_ID
+    dst_local = flow["dst_node"] - config.GS_START_NODE_ID
+    src_name = names.get(src_local, f"gs{src_local}")
+    dst_name = names.get(dst_local, f"gs{dst_local}")
+    return f"{src_local}:{src_name} -> {dst_local}:{dst_name}"
+
+
+def _print_path_reference(title, paths_by_tuple):
+    expected_union = set()
+    print(f"\n=== {title} ===")
+    for (status, path), times in sorted(paths_by_tuple.items(), key=lambda item: item[1][0]):
+        pairs = _expanded_pairs(list(path)) if status == "ok" else []
+        expected_union.update(pairs)
+        time_desc = f"{times[0]}..{times[-1]}" if len(times) > 1 else str(times[0])
+        print(f"fstate_times_ns={time_desc} status={status} path={list(path)}")
+        print(f"  expanded_pairs={pairs}")
+    return expected_union
+
+
 def main():
-    schedule = _read_schedule()
+    flows = _read_schedule()
+    names = _read_ground_station_names()
     metadata = _read_metadata()
     total, per_slice_nonzero = _sum_observed_bytes()
     nonzero = np.argwhere(total > 0)
 
-    print("=== Validation flow ===")
-    print(
-        f"flow_id={schedule['flow_id']} "
-        f"src_node={schedule['src_node']} dst_node={schedule['dst_node']} "
-        f"size_bytes={schedule['size_bytes']}"
-    )
-    print("ground_stations=0:New-York-Newark -> 1:Sydney")
+    print("=== Validation flows ===")
+    print(f"flow_count={len(flows)}")
+    print(f"total_scheduled_bytes={sum(flow['size_bytes'] for flow in flows)}")
+    for flow in flows:
+        print(
+            f"flow_id={flow['flow_id']} "
+            f"src_node={flow['src_node']} dst_node={flow['dst_node']} "
+            f"size_bytes={flow['size_bytes']} "
+            f"{_describe_flow(flow, names)}"
+        )
 
     print("\n=== Monitor metadata ===")
     for key in [
@@ -129,22 +168,28 @@ def main():
     for from_sat, to_sat in nonzero:
         print(f"  {from_sat}->{to_sat}: {int(total[from_sat, to_sat])}")
 
-    print("\n=== Fstate path expansion reference ===")
-    paths_by_tuple = _expected_paths(schedule)
-    expected_union = set()
-    for (status, path), times in sorted(paths_by_tuple.items(), key=lambda item: item[1][0]):
-        pairs = _expanded_pairs(list(path)) if status == "ok" else []
-        expected_union.update(pairs)
-        time_desc = f"{times[0]}..{times[-1]}" if len(times) > 1 else str(times[0])
-        print(f"fstate_times_ns={time_desc} status={status} path={list(path)}")
-        print(f"  expanded_pairs={pairs}")
+    forward_expected_union = set()
+    reverse_expected_union = set()
+    for flow in flows:
+        print(f"\n--- Flow {flow['flow_id']} {_describe_flow(flow, names)} ---")
+        forward_paths = _expected_paths(flow["src_node"], flow["dst_node"])
+        reverse_paths = _expected_paths(flow["dst_node"], flow["src_node"])
+        forward_expected_union.update(
+            _print_path_reference("Fstate forward data path expansion reference", forward_paths)
+        )
+        reverse_expected_union.update(
+            _print_path_reference("Fstate reverse TCP ACK/control path expansion reference", reverse_paths)
+        )
 
     observed_pairs = {(int(i), int(j)) for i, j in nonzero}
+    all_expected_pairs = forward_expected_union | reverse_expected_union
     print("\n=== Pair coverage check ===")
-    print(f"expected_union_pairs={sorted(expected_union)}")
+    print(f"forward_expected_pairs={sorted(forward_expected_union)}")
+    print(f"reverse_expected_pairs={sorted(reverse_expected_union)}")
     print(f"observed_pairs={sorted(observed_pairs)}")
-    print(f"missing_expected_pairs={sorted(expected_union - observed_pairs)}")
-    print(f"extra_observed_pairs={sorted(observed_pairs - expected_union)}")
+    print(f"missing_forward_pairs={sorted(forward_expected_union - observed_pairs)}")
+    print(f"missing_reverse_pairs={sorted(reverse_expected_union - observed_pairs)}")
+    print(f"unexpected_observed_pairs={sorted(observed_pairs - all_expected_pairs)}")
 
 
 if __name__ == "__main__":
