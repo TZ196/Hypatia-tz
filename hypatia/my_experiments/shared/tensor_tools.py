@@ -383,7 +383,12 @@ def build_sat_path_flow_from_routes(config, time_slice_s=1, output_name="sat_pat
                             if route_result is None:
                                 fstate = fstate_cache.get(fstate_time)
                                 if fstate is None:
-                                    fstate = _read_fstate(dynamic_state_dir / f"fstate_{fstate_time}.txt")
+                                    fstate = _read_cumulative_fstate(
+                                        dynamic_state_dir,
+                                        available_fstates,
+                                        fstate_time,
+                                        fstate_cache,
+                                    )
                                     fstate_cache[fstate_time] = fstate
                                 route_result = _satellite_path_for_flow(
                                     fstate,
@@ -556,6 +561,31 @@ def _read_fstate(path):
             current, dest, next_hop, _own_if, _next_if = line.split(",", 4)
             forwarding[(int(current), int(dest))] = int(next_hop)
     return forwarding
+
+
+def _read_cumulative_fstate(dynamic_state_dir, available_fstates, target_time, cache):
+    # fstate_0 is complete, later fstate files only contain entries which changed
+    # relative to the previous state. Reconstruct the full forwarding state.
+    if target_time in cache:
+        return cache[target_time]
+
+    prior_cached_times = [time for time in cache if time <= target_time]
+    if prior_cached_times:
+        start_time = max(prior_cached_times)
+        forwarding = dict(cache[start_time])
+        times_to_apply = [time for time in available_fstates if start_time < time <= target_time]
+    else:
+        forwarding = {}
+        times_to_apply = [time for time in available_fstates if time <= target_time]
+
+    for time in times_to_apply:
+        updates = _read_fstate(dynamic_state_dir / f"fstate_{time}.txt")
+        forwarding.update(updates)
+        cache[time] = dict(forwarding)
+
+    if target_time not in cache:
+        cache[target_time] = dict(forwarding)
+    return cache[target_time]
 
 
 def _satellite_path_for_flow(fstate, src_node, dst_node, num_satellites):
