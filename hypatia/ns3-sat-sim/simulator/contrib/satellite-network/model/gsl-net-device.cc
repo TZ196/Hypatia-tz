@@ -360,8 +360,6 @@ GSLNetDevice::Receive (Ptr<Packet> packet)
     }
   else 
     {
-      uint64_t receivedBytes = packet->GetSize ();
-
       // 
       // Hit the trace hooks.  All of these hooks are in the same place in this 
       // device because it is so simple, but this is not usually the case in
@@ -384,11 +382,7 @@ GSLNetDevice::Receive (Ptr<Packet> packet)
       // normal receive callback sees.
       //
       ProcessHeader (packet, protocol);
-      if (SatellitePathMonitor::IsSatelliteNode (m_node->GetId ()))
-        {
-          SatellitePathMonitor::RecordSatelliteReceive (packet, m_node->GetId (), receivedBytes);
-        }
-      else
+      if (!SatellitePathMonitor::IsSatelliteNode (m_node->GetId ()))
         {
           SatellitePathMonitor::RecordGroundStationReceive (packet);
         }

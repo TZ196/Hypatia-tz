@@ -256,6 +256,11 @@ PointToPointLaserNetDevice::TransmitStart (Ptr<Packet> p)
   m_phyTxBeginTrace (m_currentPkt);
   TrackUtilization(true);
   TrackBytes(p->GetSize());
+  SatellitePathMonitor::RecordIslTransmit (
+      p,
+      m_node->GetId (),
+      m_destination_node->GetId (),
+      p->GetSize ());
 
   Time txTime = m_bps.CalculateBytesTxTime (p->GetSize ());
   Time txCompleteTime = txTime + m_tInterframeGap;
@@ -356,8 +361,6 @@ PointToPointLaserNetDevice::Receive (Ptr<Packet> packet)
     }
   else 
     {
-      uint64_t receivedBytes = packet->GetSize ();
-
       // 
       // Hit the trace hooks.  All of these hooks are in the same place in this 
       // device because it is so simple, but this is not usually the case in
@@ -380,7 +383,6 @@ PointToPointLaserNetDevice::Receive (Ptr<Packet> packet)
       // normal receive callback sees.
       //
       ProcessHeader (packet, protocol);
-      SatellitePathMonitor::RecordSatelliteReceive (packet, m_node->GetId (), receivedBytes);
 
       if (!m_promiscCallback.IsNull ())
         {

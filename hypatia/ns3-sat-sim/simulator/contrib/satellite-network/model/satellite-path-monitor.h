@@ -29,7 +29,11 @@ public:
 
   static bool IsEnabled (void);
   static bool IsSatelliteNode (uint32_t nodeId);
-  static void RecordSatelliteReceive (Ptr<Packet> packet, uint32_t satelliteId, uint64_t bytes);
+  static void RecordIslTransmit (
+      Ptr<const Packet> packet,
+      uint32_t fromSatelliteId,
+      uint32_t toSatelliteId,
+      uint64_t bytes);
   static void RecordSatelliteDrop (Ptr<Packet> packet, uint32_t satelliteId, uint64_t bytes);
   static void RecordGroundStationReceive (Ptr<Packet> packet);
   static void WriteCsvMatrices (void);
@@ -61,7 +65,7 @@ private:
   static uint64_t s_numTimeBins;
   static std::string s_logsDir;
   static uint64_t s_maxPathLengthSeen;
-  static uint64_t s_satelliteReceiveEvents;
+  static uint64_t s_islTransmitEvents;
   static uint64_t s_transitPairObservations;
   static uint64_t s_nonAdjacentPairObservations;
   static uint64_t s_nonAdjacentBytes;

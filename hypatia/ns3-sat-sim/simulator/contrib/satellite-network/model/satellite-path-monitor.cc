@@ -24,7 +24,7 @@ int64_t SatellitePathMonitor::s_intervalNs = 0;
 uint64_t SatellitePathMonitor::s_numTimeBins = 0;
 std::string SatellitePathMonitor::s_logsDir = "";
 uint64_t SatellitePathMonitor::s_maxPathLengthSeen = 0;
-uint64_t SatellitePathMonitor::s_satelliteReceiveEvents = 0;
+uint64_t SatellitePathMonitor::s_islTransmitEvents = 0;
 uint64_t SatellitePathMonitor::s_transitPairObservations = 0;
 uint64_t SatellitePathMonitor::s_nonAdjacentPairObservations = 0;
 uint64_t SatellitePathMonitor::s_nonAdjacentBytes = 0;
@@ -45,7 +45,7 @@ SatellitePathMonitor::Initialize (
   s_intervalNs = intervalNs;
   s_logsDir = logsDir;
   s_maxPathLengthSeen = 0;
-  s_satelliteReceiveEvents = 0;
+  s_islTransmitEvents = 0;
   s_transitPairObservations = 0;
   s_nonAdjacentPairObservations = 0;
   s_nonAdjacentBytes = 0;
@@ -82,25 +82,37 @@ SatellitePathMonitor::IsSatelliteNode (uint32_t nodeId)
 }
 
 void
-SatellitePathMonitor::RecordSatelliteReceive (Ptr<Packet> packet, uint32_t satelliteId, uint64_t bytes)
+SatellitePathMonitor::RecordIslTransmit (
+    Ptr<const Packet> packet,
+    uint32_t fromSatelliteId,
+    uint32_t toSatelliteId,
+    uint64_t bytes)
 {
-  if (!IsSatelliteNode (satelliteId))
+  if (!IsSatelliteNode (fromSatelliteId) || !IsSatelliteNode (toSatelliteId) || fromSatelliteId == toSatelliteId)
     {
       return;
     }
 
   uint64_t packetKey = PacketKey (packet);
   std::vector<uint32_t>& path = s_packetSatellites[packetKey];
-  s_satelliteReceiveEvents += 1;
+  s_islTransmitEvents += 1;
 
+  if (std::find (path.begin (), path.end (), fromSatelliteId) == path.end ())
+    {
+      path.push_back (fromSatelliteId);
+      ObservePathLength (path.size ());
+    }
+
+  // Attribute this transmitted packet to every earlier satellite on its path.
+  // For A->B->C, the B->C transmission contributes once to A->C and once to B->C.
   for (uint32_t pathIndex = 0; pathIndex < path.size (); pathIndex++)
     {
       uint32_t fromSat = path[pathIndex];
-      if (fromSat != satelliteId)
+      if (fromSat != toSatelliteId)
         {
-          Increment (fromSat, satelliteId, bytes, false);
+          Increment (fromSat, toSatelliteId, bytes, false);
           s_transitPairObservations += 1;
-          if (pathIndex + 1 < path.size ())
+          if (fromSat != fromSatelliteId)
             {
               s_nonAdjacentPairObservations += 1;
               s_nonAdjacentBytes += bytes;
@@ -108,9 +120,9 @@ SatellitePathMonitor::RecordSatelliteReceive (Ptr<Packet> packet, uint32_t satel
         }
     }
 
-  if (std::find (path.begin (), path.end (), satelliteId) == path.end ())
+  if (std::find (path.begin (), path.end (), toSatelliteId) == path.end ())
     {
-      path.push_back (satelliteId);
+      path.push_back (toSatelliteId);
       ObservePathLength (path.size ());
     }
 }
@@ -247,8 +259,9 @@ SatellitePathMonitor::WriteCsvMatrices (void)
   metadata << "interval_ns=" << s_intervalNs << std::endl;
   metadata << "layout=matrix[from_sat][to_sat]" << std::endl;
   metadata << "tracking_key=packet_uid" << std::endl;
+  metadata << "tracking_point=isl_transmit" << std::endl;
   metadata << "max_path_length_seen=" << s_maxPathLengthSeen << std::endl;
-  metadata << "satellite_receive_events=" << s_satelliteReceiveEvents << std::endl;
+  metadata << "isl_transmit_events=" << s_islTransmitEvents << std::endl;
   metadata << "transit_pair_observations=" << s_transitPairObservations << std::endl;
   metadata << "non_adjacent_pair_observations=" << s_nonAdjacentPairObservations << std::endl;
   metadata << "non_adjacent_bytes=" << s_nonAdjacentBytes << std::endl;
