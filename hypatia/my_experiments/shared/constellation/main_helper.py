@@ -76,7 +76,8 @@ class MainHelper:
             gs_selection,             # ground_stations_{top_100, paris_moscow_grid}
             dynamic_state_algorithm,  # algorithm_{free_one_only_{gs_relays,_over_isls}, paired_many_only_over_isls}
             num_threads,
-            ground_stations_basic_file=None
+            ground_stations_basic_file=None,
+            isl_shift=None
     ):
 
         output_generated_data_dir = Path(output_generated_data_dir)
@@ -136,12 +137,15 @@ class MainHelper:
         # ISLs
         print("Generating ISLs...")
         if isl_selection == "isls_plus_grid":
-            # Choose an isl_shift that matches the phasing of the Walker constellation.
-            # For many small-per-orbit constellations (like Iridium 11), connecting the
-            # same-index satellite in the adjacent orbit can exceed the physical ISL
-            # maximum. Using roughly half the satellites per orbit as a shift tends to
-            # produce nearer neighbors across adjacent planes.
-            isl_shift = int(self.NUM_SATS_PER_ORB / 2)
+            if isl_shift is None:
+                isl_shift = 0
+            isl_shift = int(isl_shift)
+            if isl_shift < 0 or isl_shift >= self.NUM_SATS_PER_ORB:
+                raise ValueError(
+                    "isl_shift must be in [0, %d], got %d"
+                    % (self.NUM_SATS_PER_ORB - 1, isl_shift)
+                )
+            print("Using ISL shift: %d" % isl_shift)
             satgen.generate_plus_grid_isls(
                 str(experiment_dir / "isls.txt"),
                 self.NUM_ORBS,

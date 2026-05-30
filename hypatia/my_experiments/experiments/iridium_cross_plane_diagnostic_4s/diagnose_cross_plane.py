@@ -376,6 +376,7 @@ def main():
     print(f"num_satellites={config.NUM_SATELLITES}")
     print(f"num_orbits={config.NUM_ORBITS}")
     print(f"num_sats_per_orbit={config.NUM_SATS_PER_ORBIT}")
+    print(f"isl_shift={config.ISL_SHIFT}")
     print(f"duration_s={config.DURATION_S}")
     print(f"fstate_times_ns={list(fstates)}")
 

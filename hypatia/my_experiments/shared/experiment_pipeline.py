@@ -190,6 +190,8 @@ def generate_satellite_network_state(config, constellation_helper, threads):
             "请先运行地面站定义步骤。"
         )
 
+    isl_shift = getattr(config, "ISL_SHIFT", getattr(config, "IRIDIUM_ISL_SHIFT", None))
+
     constellation_helper.calculate(
         str(config.GEN_DATA_ROOT),
         config.DURATION_S,
@@ -199,6 +201,7 @@ def generate_satellite_network_state(config, constellation_helper, threads):
         config.ROUTING_ALGORITHM,
         threads,
         ground_stations_basic_file=config.GROUND_STATIONS_FILE,
+        isl_shift=isl_shift,
     )
 
     print(f"已生成卫星网络状态目录: {config.generated_satellite_network_dir()}")

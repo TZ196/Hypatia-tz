@@ -36,6 +36,9 @@ NUM_GROUND_STATIONS = 8
 GS_START_NODE_ID = NUM_SATELLITES
 NUM_ORBITS = 6
 NUM_SATS_PER_ORBIT = 11
+ISL_SHIFT = 0
+IRIDIUM_ISL_SHIFT = ISL_SHIFT
+AUTO_SELECT_ISL_SHIFT = True
 
 # Eight directed long-distance flows over globally spread stations.
 TRAFFIC_PAIR_MODE = "explicit"
