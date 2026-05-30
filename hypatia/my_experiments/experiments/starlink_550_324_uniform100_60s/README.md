@@ -1,15 +1,18 @@
-# Starlink 550 324 Latitude-Band 2000 10s
+# Starlink 550 324 Satellite-Anchored 648 10s
 
-This experiment is a dense Starlink path-flow run for validating whether a
-large number of ground demand points inside the Starlink 550 km, 53-degree
-inclination service band can fill the satellite path-flow matrix more densely.
+This experiment is a dense Starlink path-flow run for validating whether
+satellite-anchored demand points can fill the satellite path-flow matrix more
+densely than purely geographic random/uniform ground points.
 
 The experiment keeps the original directory name for continuity, but the
 current configuration is:
 
 - 324 Starlink satellites
-- 2000 uniformly distributed ground stations inside `[-52.5, 52.5]` degrees latitude
+- 648 satellite-anchored ground stations, at most `2 * NUM_SATELLITES`
+- one base ground station at each satellite shadow point at `t=0`
+- one jittered ground station per satellite, about 350-700 km from the base point
 - 10000 directed long-distance TCP flows
+- OD pairs are chosen so anchored source/destination satellites are as far apart as possible
 - 10 seconds of simulation
 - `TRAFFIC_MIN_DISTANCE_KM = 5000`
 - `ISL_SHIFT = 0`
@@ -38,7 +41,8 @@ python tensor_cli.py starlink_550_324_uniform100_60s sat-connectivity --bin-ms 1
 
 After the run, check:
 
-- generated ground stations stay inside the configured latitude band
+- generated ground station names follow `SatAnchor-<sat_id>-...`
+- every satellite has at least one anchored source/destination candidate
 - `isls.txt` contains cross-plane candidate ISLs
 - dynamic-state active graph has `cross_active > 0`
 - fstate has `cross_plane_sat_next_hops > 0`

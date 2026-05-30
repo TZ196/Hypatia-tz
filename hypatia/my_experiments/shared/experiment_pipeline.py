@@ -5,11 +5,13 @@
 """
 
 import csv
+import importlib
 import math
 import os
 import random
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -101,6 +103,111 @@ def _generate_uniform_latitude_band_ground_stations(config):
     return stations
 
 
+def _normalize_longitude(longitude):
+    return ((longitude + 180.0) % 360.0) - 180.0
+
+
+def _offset_lat_lon(latitude, longitude, distance_km, bearing_degrees):
+    earth_radius_km = 6371.0
+    angular_distance = distance_km / earth_radius_km
+    bearing = math.radians(bearing_degrees)
+    lat1 = math.radians(latitude)
+    lon1 = math.radians(longitude)
+
+    lat2 = math.asin(
+        math.sin(lat1) * math.cos(angular_distance)
+        + math.cos(lat1) * math.sin(angular_distance) * math.cos(bearing)
+    )
+    lon2 = lon1 + math.atan2(
+        math.sin(bearing) * math.sin(angular_distance) * math.cos(lat1),
+        math.cos(angular_distance) - math.sin(lat1) * math.sin(lat2),
+    )
+    return math.degrees(lat2), _normalize_longitude(math.degrees(lon2))
+
+
+def _generate_satellite_anchored_ground_stations(config):
+    count = config.NUM_GROUND_STATIONS
+    num_satellites = config.NUM_SATELLITES
+    if count < num_satellites or count > 2 * num_satellites:
+        raise ValueError(
+            "satellite_anchored ground stations require "
+            "NUM_SATELLITES <= NUM_GROUND_STATIONS <= 2 * NUM_SATELLITES"
+        )
+
+    satgenpy_dir = config.HYPATIA_DIR / "satgenpy"
+    if str(satgenpy_dir) not in sys.path:
+        sys.path.insert(0, str(satgenpy_dir))
+    if str(config.MY_EXPERIMENTS_DIR) not in sys.path:
+        sys.path.insert(0, str(config.MY_EXPERIMENTS_DIR))
+
+    import satgen
+    from astropy import units as u
+
+    constellation = importlib.import_module(f"shared.constellation.main_{config.SATELLITE_NETWORK}")
+    helper = constellation.main_helper
+    anchor_time_ns = int(getattr(config, "GROUND_STATION_ANCHOR_TIME_NS", 0))
+    jitter_km = float(getattr(config, "GROUND_STATION_ANCHOR_JITTER_KM", 50.0))
+    rng = random.Random(getattr(config, "GROUND_STATION_RANDOM_SEED", getattr(config, "TRAFFIC_SEED", 123456789)))
+
+    config.INPUT_DIR.mkdir(parents=True, exist_ok=True)
+    anchor_tles = config.INPUT_DIR / f"{config.SATELLITE_NETWORK}_anchor_tles.txt"
+    satgen.generate_tles_from_scratch_manual(
+        str(anchor_tles),
+        helper.NICE_NAME,
+        helper.NUM_ORBS,
+        helper.NUM_SATS_PER_ORB,
+        helper.PHASE_DIFF,
+        helper.INCLINATION_DEGREE,
+        helper.ECCENTRICITY,
+        helper.ARG_OF_PERIGEE_DEGREE,
+        helper.MEAN_MOTION_REV_PER_DAY,
+    )
+    tle_info = satgen.read_tles(str(anchor_tles))
+    satellites = tle_info["satellites"]
+    epoch = tle_info["epoch"]
+    anchor_time = epoch + anchor_time_ns * u.ns
+
+    stations = []
+    for sat_id, satellite in enumerate(satellites):
+        shadow = satgen.create_basic_ground_station_for_satellite_shadow(
+            satellite,
+            str(epoch),
+            str(anchor_time),
+        )
+        stations.append({
+            "local_gs_id": len(stations),
+            "source_gs_id": len(stations),
+            "name": f"SatAnchor-{sat_id:04d}-base",
+            "latitude": round(float(shadow["latitude_degrees_str"]), 6),
+            "longitude": round(float(shadow["longitude_degrees_str"]), 6),
+            "altitude_m": 0.0,
+        })
+
+    extra_count = count - num_satellites
+    for extra_idx in range(extra_count):
+        sat_id = extra_idx % num_satellites
+        base = stations[sat_id]
+        bearing = rng.random() * 360.0
+        distance_km = jitter_km * (0.5 + 0.5 * rng.random())
+        latitude, longitude = _offset_lat_lon(
+            base["latitude"],
+            base["longitude"],
+            distance_km,
+            bearing,
+        )
+        stations.append({
+            "local_gs_id": len(stations),
+            "source_gs_id": len(stations),
+            "name": f"SatAnchor-{sat_id:04d}-jitter",
+            "latitude": round(latitude, 6),
+            "longitude": round(longitude, 6),
+            "altitude_m": 0.0,
+        })
+
+    _write_ground_stations_basic(config.GROUND_STATIONS_FILE, stations)
+    return stations
+
+
 def _select_ground_stations(config):
     selection_mode = getattr(config, "GROUND_STATION_SELECTION_MODE", "copy")
 
@@ -109,6 +216,9 @@ def _select_ground_stations(config):
 
     if selection_mode == "uniform_latitude_band":
         return _generate_uniform_latitude_band_ground_stations(config)
+
+    if selection_mode == "satellite_anchored":
+        return _generate_satellite_anchored_ground_stations(config)
 
     source_path = config.DEFAULT_GROUND_STATIONS_SOURCE
 
@@ -122,7 +232,7 @@ def _select_ground_stations(config):
     if selection_mode != "random_sample":
         raise ValueError(
             "GROUND_STATION_SELECTION_MODE must be 'copy', 'random_sample', "
-            "'uniform_global', or 'uniform_latitude_band'"
+            "'uniform_global', 'uniform_latitude_band', or 'satellite_anchored'"
         )
 
     candidates = read_ground_stations(source_path)
