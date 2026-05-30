@@ -11,8 +11,12 @@ current configuration is:
 - 648 satellite-anchored ground stations, at most `2 * NUM_SATELLITES`
 - one base ground station at each satellite shadow point at `t=0`
 - one jittered ground station per satellite, about 350-700 km from the base point
-- 10000 directed long-distance TCP flows
-- OD pairs are chosen so anchored source/destination satellites are as far apart as possible
+- stratified satellite-pair traffic sampling
+- each source access satellite samples `K = 100` distinct destination access satellites
+- destination satellites are mixed across near, medium, far, and cross-plane strata
+- default stratum weights are near 20%, medium 30%, far 30%, cross-plane 20%
+- `324 * 100 = 32400` directed TCP flows
+- each flow is 10-20 MB, with 15 MB target average
 - 10 seconds of simulation
 - `TRAFFIC_MIN_DISTANCE_KM = 5000`
 - `ISL_SHIFT = 0`

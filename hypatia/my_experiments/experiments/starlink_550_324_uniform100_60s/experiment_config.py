@@ -41,9 +41,19 @@ NUM_GROUND_STATIONS = 648
 GS_START_NODE_ID = NUM_SATELLITES
 ISL_SHIFT = 0
 
-# 10000 directed long-distance flows whose anchored access satellites are as far apart as possible.
-TRAFFIC_PAIR_MODE = "satellite_access_far"
-TRAFFIC_FLOW_COUNT = 10000
+# Stratified sampling over anchored source satellites:
+# each source satellite samples K distinct destination satellites.
+TRAFFIC_PAIR_MODE = "satellite_pair_stratified"
+TRAFFIC_SATELLITE_PAIR_SAMPLE_K = 100
+TRAFFIC_NEAR_SAT_DISTANCE_MAX = 2
+TRAFFIC_MID_SAT_DISTANCE_MAX = 5
+TRAFFIC_SATELLITE_DISTANCE_STRATA_WEIGHTS = {
+    "near": 0.20,
+    "mid": 0.30,
+    "far": 0.30,
+    "cross_plane": 0.20,
+}
+TRAFFIC_FLOW_COUNT = NUM_SATELLITES * TRAFFIC_SATELLITE_PAIR_SAMPLE_K
 TRAFFIC_MIN_DISTANCE_KM = 5000
 TRAFFIC_MAX_FLOWS_PER_CITY_ROLE = 20
 TRAFFIC_PREFERRED_REGION_PAIRS = [
@@ -65,10 +75,10 @@ TRAFFIC_RANDOMNESS_SIGMA = 0.35
 TRAFFIC_CAPACITY_SCOPE = "single_bottleneck"
 TRAFFIC_OFFERED_LOAD = 1.0
 
-# Keep flows intentionally larger than a 10s congested run can drain.
-TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES = 500_000_000
-TRAFFIC_MIN_FLOW_SIZE_BYTES = 200_000_000
-TRAFFIC_MAX_FLOW_SIZE_BYTES = 1_000_000_000
+# Keep every sampled path active without making each TCP flow unrealistically huge.
+TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES = 15_000_000
+TRAFFIC_MIN_FLOW_SIZE_BYTES = 10_000_000
+TRAFFIC_MAX_FLOW_SIZE_BYTES = 20_000_000
 TRAFFIC_REFERENCE_BANDWIDTH_MBIT_PER_S = 100
 
 DATA_RATE_MBIT_PER_S = 100
