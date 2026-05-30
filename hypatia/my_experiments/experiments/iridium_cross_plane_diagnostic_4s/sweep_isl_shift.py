@@ -96,6 +96,7 @@ def evaluate_shift(satellites, epoch, shift):
         same_active = 0
         cross_active = 0
         cross_candidates = 0
+        cross_distance_sum_m = 0.0
 
         for a, b in edges:
             is_cross = plane(a) != plane(b)
@@ -108,6 +109,8 @@ def evaluate_shift(satellites, epoch, shift):
                 str(epoch),
                 str(time),
             )
+            if is_cross:
+                cross_distance_sum_m += distance_m
             if distance_m > main_helper.MAX_ISL_LENGTH_M:
                 continue
 
@@ -118,11 +121,13 @@ def evaluate_shift(satellites, epoch, shift):
                 same_active += 1
 
         comps = connected_components(active_edges)
+        avg_cross_distance_m = cross_distance_sum_m / cross_candidates if cross_candidates else 0.0
         time_results.append({
             "time_ns": time_ns,
             "same_active": same_active,
             "cross_active": cross_active,
             "cross_candidates": cross_candidates,
+            "avg_cross_distance_m": avg_cross_distance_m,
             "components": len(comps),
             "component_sizes": sorted(len(comp) for comp in comps),
         })
@@ -133,8 +138,8 @@ def evaluate_shift(satellites, epoch, shift):
 def score_shift(results):
     total_cross_active = sum(row["cross_active"] for row in results)
     max_components = max(row["components"] for row in results)
-    avg_components = sum(row["components"] for row in results) / len(results)
-    return total_cross_active, -max_components, -avg_components
+    avg_cross_distance_m = sum(row["avg_cross_distance_m"] for row in results) / len(results)
+    return total_cross_active, -max_components, -avg_cross_distance_m
 
 
 def main():
@@ -156,17 +161,20 @@ def main():
             total_cross_active = sum(row["cross_active"] for row in results)
             min_components = min(row["components"] for row in results)
             max_components = max(row["components"] for row in results)
+            avg_cross_distance_m = sum(row["avg_cross_distance_m"] for row in results) / len(results)
             summaries.append((score_shift(results), shift, results))
 
             print(
                 f"shift={shift} total_cross_plane_candidate_isls={total_cross_candidates} "
                 f"active_cross_plane_isls_sum={total_cross_active} "
-                f"components_min={min_components} components_max={max_components}"
+                f"components_min={min_components} components_max={max_components} "
+                f"avg_cross_distance_m={avg_cross_distance_m:.3f}"
             )
             for row in results:
                 print(
                     f"  time_ns={row['time_ns']} same_active={row['same_active']} "
                     f"cross_active={row['cross_active']} components={row['components']} "
+                    f"avg_cross_distance_m={row['avg_cross_distance_m']:.3f} "
                     f"component_sizes={row['component_sizes']}"
                 )
 
@@ -175,6 +183,10 @@ def main():
         print(f"best_shift={best_shift}")
         print(f"best_active_cross_plane_isls_sum={sum(row['cross_active'] for row in best_results)}")
         print(f"best_components_max={max(row['components'] for row in best_results)}")
+        print(
+            "best_avg_cross_distance_m="
+            f"{sum(row['avg_cross_distance_m'] for row in best_results) / len(best_results):.3f}"
+        )
         print(f"configured_ISL_SHIFT={config.ISL_SHIFT}")
         if best_shift != config.ISL_SHIFT:
             print("WARNING configured_ISL_SHIFT differs from best_shift")

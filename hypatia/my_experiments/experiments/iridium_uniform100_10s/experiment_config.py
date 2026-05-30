@@ -35,6 +35,8 @@ ROUTING_ALGORITHM = "algorithm_free_one_only_over_isls"
 NUM_SATELLITES = 66
 NUM_GROUND_STATIONS = 100
 GS_START_NODE_ID = NUM_SATELLITES
+ISL_SHIFT = 0
+IRIDIUM_ISL_SHIFT = ISL_SHIFT
 
 # 1000 directed long-distance flows over uniformly spread ground points.
 TRAFFIC_PAIR_MODE = "long_distance_balanced"

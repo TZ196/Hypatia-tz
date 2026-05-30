@@ -25,7 +25,9 @@ If ns-3 has already been rebuilt after the latest C++ changes, omit `--build`.
 
 `run_all.py` first sweeps `isl_shift=0..10`. With
 `AUTO_SELECT_ISL_SHIFT = True`, it then runs the experiment using the best
-shift found by the sweep.
+shift found by the sweep. The recommendation prioritizes the largest
+`cross_active`, then the fewest satellite-only graph components, then the
+smallest average cross-plane candidate distance.
 
 The diagnosis prints:
 
