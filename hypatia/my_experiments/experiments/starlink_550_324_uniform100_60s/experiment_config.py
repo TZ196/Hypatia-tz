@@ -15,8 +15,10 @@ RUNS_DIR = EXPERIMENT_DIR / "runs"
 LOGS_DIR = EXPERIMENT_DIR / "logs"
 
 SHARED_INPUT_DIR = MY_EXPERIMENTS_DIR / "shared" / "input_data"
-GROUND_STATION_SELECTION_MODE = "uniform_global"
+GROUND_STATION_SELECTION_MODE = "uniform_latitude_band"
 GROUND_STATION_RANDOM_SEED = 123456789
+GROUND_STATION_MIN_LATITUDE = -52.5
+GROUND_STATION_MAX_LATITUDE = 52.5
 GROUND_STATIONS_FILE = INPUT_DIR / "ground_stations.basic.txt"
 GROUND_STATIONS_MANIFEST = INPUT_DIR / "ground_stations_manifest.csv"
 TRAFFIC_SCHEDULE_FILE = INPUT_DIR / "schedule.csv"
@@ -29,19 +31,19 @@ SATELLITE_NETWORK = "starlink_550_324"
 DURATION_S = 10
 TIME_STEP_MS = 1000
 ISL_MODE = "isls_plus_grid"
-GS_SELECTION = "ground_stations_uniform_global_100"
+GS_SELECTION = "ground_stations_uniform_lat53_1000"
 ROUTING_ALGORITHM = "algorithm_free_one_only_over_isls"
 
 NUM_SATELLITES = 324
-NUM_GROUND_STATIONS = 100
+NUM_GROUND_STATIONS = 1000
 GS_START_NODE_ID = NUM_SATELLITES
 ISL_SHIFT = 0
 
-# 2000 directed long-distance flows over uniformly spread ground points.
+# 10000 directed long-distance flows inside the Starlink 53-degree latitude band.
 TRAFFIC_PAIR_MODE = "long_distance_balanced"
-TRAFFIC_FLOW_COUNT = 2000
+TRAFFIC_FLOW_COUNT = 10000
 TRAFFIC_MIN_DISTANCE_KM = 5000
-TRAFFIC_MAX_FLOWS_PER_CITY_ROLE = 24
+TRAFFIC_MAX_FLOWS_PER_CITY_ROLE = 30
 TRAFFIC_PREFERRED_REGION_PAIRS = [
     ("Asia", "South America"),
     ("Asia", "Africa"),

@@ -67,11 +67,48 @@ def _generate_uniform_global_ground_stations(config):
     return stations
 
 
+def _generate_uniform_latitude_band_ground_stations(config):
+    count = config.NUM_GROUND_STATIONS
+    seed = getattr(config, "GROUND_STATION_RANDOM_SEED", getattr(config, "TRAFFIC_SEED", 123456789))
+    min_latitude = float(getattr(config, "GROUND_STATION_MIN_LATITUDE", -53.0))
+    max_latitude = float(getattr(config, "GROUND_STATION_MAX_LATITUDE", 53.0))
+    if min_latitude >= max_latitude:
+        raise ValueError("GROUND_STATION_MIN_LATITUDE must be smaller than GROUND_STATION_MAX_LATITUDE")
+    if min_latitude < -90.0 or max_latitude > 90.0:
+        raise ValueError("Latitude band must stay within [-90, 90] degrees")
+
+    rng = random.Random(seed)
+    lon_offset = rng.random() * 360.0
+    golden_angle = math.pi * (3.0 - math.sqrt(5.0))
+    z_min = math.sin(math.radians(min_latitude))
+    z_max = math.sin(math.radians(max_latitude))
+    stations = []
+
+    for idx in range(count):
+        z = z_max - (z_max - z_min) * ((idx + 0.5) / count)
+        latitude = math.degrees(math.asin(z))
+        longitude = ((math.degrees(idx * golden_angle) + lon_offset + 180.0) % 360.0) - 180.0
+        stations.append({
+            "local_gs_id": idx,
+            "source_gs_id": idx,
+            "name": f"UniformBand-{idx:04d}",
+            "latitude": round(latitude, 6),
+            "longitude": round(longitude, 6),
+            "altitude_m": 0.0,
+        })
+
+    _write_ground_stations_basic(config.GROUND_STATIONS_FILE, stations)
+    return stations
+
+
 def _select_ground_stations(config):
     selection_mode = getattr(config, "GROUND_STATION_SELECTION_MODE", "copy")
 
     if selection_mode == "uniform_global":
         return _generate_uniform_global_ground_stations(config)
+
+    if selection_mode == "uniform_latitude_band":
+        return _generate_uniform_latitude_band_ground_stations(config)
 
     source_path = config.DEFAULT_GROUND_STATIONS_SOURCE
 
@@ -83,7 +120,10 @@ def _select_ground_stations(config):
         return stations
 
     if selection_mode != "random_sample":
-        raise ValueError("GROUND_STATION_SELECTION_MODE must be 'copy', 'random_sample', or 'uniform_global'")
+        raise ValueError(
+            "GROUND_STATION_SELECTION_MODE must be 'copy', 'random_sample', "
+            "'uniform_global', or 'uniform_latitude_band'"
+        )
 
     candidates = read_ground_stations(source_path)
     if len(candidates) < config.NUM_GROUND_STATIONS:

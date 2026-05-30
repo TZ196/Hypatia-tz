@@ -1,56 +1,50 @@
-## Starlink 550 324 Uniform100 10s
+# Starlink 550 324 Latitude-Band 1000 10s
 
-This experiment checks whether a reduced Starlink-like shell exhibits the same
-within-orbit-plane block pattern seen in Iridium path-flow matrices.
+This experiment is a dense Starlink path-flow run for validating whether a
+large number of ground demand points inside the Starlink 550 km, 53-degree
+inclination service band can fill the satellite path-flow matrix more densely.
 
-Design:
+The experiment keeps the original directory name for continuity, but the
+current configuration is:
 
-- Reduced Starlink shell: 18 orbital planes x 18 satellites per plane = 324 satellites
-- Altitude/inclination: Starlink-like 550 km / 53 degrees
-- 100 synthetic ground stations generated uniformly over the globe
-- 2000 directed long-distance OD flows
+- 324 Starlink satellites
+- 1000 uniformly distributed ground stations inside `[-52.5, 52.5]` degrees latitude
+- 10000 directed long-distance TCP flows
 - 10 seconds of simulation
-- Large TCP demands designed not to finish during the run
+- `TRAFFIC_MIN_DISTANCE_KM = 5000`
+- `ISL_SHIFT = 0`
+- ISL utilization tracking enabled
+- satellite path-flow tracking enabled
+- per-flow TCP progress/RTT/cwnd logging disabled
 
 ## Run
 
 ```bash
-cd /home/xuke/tz-Hypatia/hypatia
-source venv/bin/activate
-export CC=gcc-9 CXX=g++-9
-
-cd my_experiments/experiments/starlink_550_324_uniform100_60s
+cd hypatia/my_experiments/experiments/starlink_550_324_uniform100_60s
 python run_pipeline.py --threads 4 --build
 ```
 
-After ns-3 finishes:
+Use `--build` after C++ changes or when the ns-3 binary is not current.
+
+## Build tensors
 
 ```bash
-cd /home/xuke/tz-Hypatia/hypatia/my_experiments
+cd hypatia/my_experiments
 python tensor_cli.py starlink_550_324_uniform100_60s sat-path-flow
+python tensor_cli.py starlink_550_324_uniform100_60s sat-connectivity --bin-ms 1000
 ```
 
-## ISL Cross-Plane Check
+## Required checks
 
-For this shell each orbit plane has 18 satellites. Cross-plane candidate ISLs
-have `a // 18 != b // 18`.
+After the run, check:
 
-```bash
-cd /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_324_uniform100_60s
-python - <<'PY'
-from pathlib import Path
-p = Path("gen_data/starlink_550_324_isls_plus_grid_ground_stations_uniform_global_100_algorithm_free_one_only_over_isls/isls.txt")
-same = cross = 0
-for line in p.read_text().splitlines():
-    a, b = map(int, line.split())
-    if a // 18 == b // 18:
-        same += 1
-    else:
-        cross += 1
-print("same_plane", same)
-print("cross_plane", cross)
-PY
-```
+- generated ground stations stay inside the configured latitude band
+- `isls.txt` contains cross-plane candidate ISLs
+- dynamic-state active graph has `cross_active > 0`
+- fstate has `cross_plane_sat_next_hops > 0`
+- `logs_ns3/isl_utilization.csv` has `cross_plane_bytes > 0`
+- `logs_ns3/sat_path_flow/metadata.txt` reports nonzero path observations
 
-Per-flow TCP progress/RTT/cwnd logging is disabled; use the C++ path-flow
-monitor output under `runs/main/logs_ns3/sat_path_flow/`.
+Remember that `sat-path-flow` is a path-expanded matrix, not a pure adjacent
+ISL link-utilization matrix. Use `isl_utilization.csv` for actual directed ISL
+edge bytes.
