@@ -26,7 +26,7 @@ TRAFFIC_ACTIVITY_FILE = INPUT_DIR / "station_activity.csv"
 TRAFFIC_FLOW_DETAILS_FILE = INPUT_DIR / "traffic_flow_details.csv"
 
 SATELLITE_NETWORK = "starlink_550_324"
-DURATION_S = 60
+DURATION_S = 10
 TIME_STEP_MS = 1000
 ISL_MODE = "isls_plus_grid"
 GS_SELECTION = "ground_stations_uniform_global_100"
@@ -35,11 +35,12 @@ ROUTING_ALGORITHM = "algorithm_free_one_only_over_isls"
 NUM_SATELLITES = 324
 NUM_GROUND_STATIONS = 100
 GS_START_NODE_ID = NUM_SATELLITES
+ISL_SHIFT = 0
 
 # 2000 directed long-distance flows over uniformly spread ground points.
 TRAFFIC_PAIR_MODE = "long_distance_balanced"
 TRAFFIC_FLOW_COUNT = 2000
-TRAFFIC_MIN_DISTANCE_KM = 7000
+TRAFFIC_MIN_DISTANCE_KM = 5000
 TRAFFIC_MAX_FLOWS_PER_CITY_ROLE = 24
 TRAFFIC_PREFERRED_REGION_PAIRS = [
     ("Asia", "South America"),
@@ -60,7 +61,7 @@ TRAFFIC_RANDOMNESS_SIGMA = 0.35
 TRAFFIC_CAPACITY_SCOPE = "single_bottleneck"
 TRAFFIC_OFFERED_LOAD = 1.0
 
-# Keep flows intentionally larger than a 60s congested run can drain.
+# Keep flows intentionally larger than a 10s congested run can drain.
 TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES = 500_000_000
 TRAFFIC_MIN_FLOW_SIZE_BYTES = 200_000_000
 TRAFFIC_MAX_FLOW_SIZE_BYTES = 1_000_000_000

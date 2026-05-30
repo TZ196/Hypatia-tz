@@ -1,4 +1,4 @@
-## Starlink 550 324 Uniform100 60s
+## Starlink 550 324 Uniform100 10s
 
 This experiment checks whether a reduced Starlink-like shell exhibits the same
 within-orbit-plane block pattern seen in Iridium path-flow matrices.
@@ -9,7 +9,7 @@ Design:
 - Altitude/inclination: Starlink-like 550 km / 53 degrees
 - 100 synthetic ground stations generated uniformly over the globe
 - 2000 directed long-distance OD flows
-- 60 seconds of simulation
+- 10 seconds of simulation
 - Large TCP demands designed not to finish during the run
 
 ## Run
