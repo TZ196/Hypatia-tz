@@ -38,10 +38,10 @@ GS_START_NODE_ID = NUM_SATELLITES
 ISL_SHIFT = 0
 IRIDIUM_ISL_SHIFT = ISL_SHIFT
 
-# 1000 directed long-distance flows over uniformly spread ground points.
+# 5000 directed long-distance flows over uniformly spread ground points.
 TRAFFIC_PAIR_MODE = "long_distance_balanced"
-TRAFFIC_FLOW_COUNT = 1000
-TRAFFIC_MIN_DISTANCE_KM = 7000
+TRAFFIC_FLOW_COUNT = 5000
+TRAFFIC_MIN_DISTANCE_KM = 5000
 TRAFFIC_MAX_FLOWS_PER_CITY_ROLE = 12
 TRAFFIC_PREFERRED_REGION_PAIRS = [
     ("Asia", "South America"),
