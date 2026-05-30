@@ -1,4 +1,4 @@
-# Starlink 550 324 Latitude-Band 1000 10s
+# Starlink 550 324 Latitude-Band 2000 10s
 
 This experiment is a dense Starlink path-flow run for validating whether a
 large number of ground demand points inside the Starlink 550 km, 53-degree
@@ -8,7 +8,7 @@ The experiment keeps the original directory name for continuity, but the
 current configuration is:
 
 - 324 Starlink satellites
-- 1000 uniformly distributed ground stations inside `[-52.5, 52.5]` degrees latitude
+- 2000 uniformly distributed ground stations inside `[-52.5, 52.5]` degrees latitude
 - 10000 directed long-distance TCP flows
 - 10 seconds of simulation
 - `TRAFFIC_MIN_DISTANCE_KM = 5000`
