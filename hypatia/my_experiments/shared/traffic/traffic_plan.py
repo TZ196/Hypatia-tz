@@ -374,7 +374,7 @@ def _select_satellite_pair_stratified_pairs(
                         dst_station.latitude,
                         dst_station.longitude,
                     )
-                    if distance_km >= min_distance_km:
+                    if src_sat == dst_sat or distance_km >= min_distance_km:
                         pair_candidates.append((
                             -distance_km,
                             rng.random(),
@@ -386,10 +386,22 @@ def _select_satellite_pair_stratified_pairs(
                 pair_candidates.sort()
                 _neg_distance, _tie, src_local, dst_local = pair_candidates[0]
             else:
-                src_station = src_stations[sample_idx % len(src_stations)]
-                dst_station = dst_stations[(sample_idx // max(1, len(src_stations))) % len(dst_stations)]
-                src_local = src_station.local_id
-                dst_local = dst_station.local_id
+                fallback_pair = None
+                for src_station in src_stations:
+                    for dst_station in dst_stations:
+                        if src_station.local_id != dst_station.local_id:
+                            fallback_pair = (src_station.local_id, dst_station.local_id)
+                            break
+                    if fallback_pair is not None:
+                        break
+
+                if fallback_pair is None:
+                    raise ValueError(
+                        f"Could not find a non-self ground-station pair for "
+                        f"src_sat={src_sat}, dst_sat={dst_sat}"
+                    )
+
+                src_local, dst_local = fallback_pair
 
             pairs.append((src_local, dst_local))
 
