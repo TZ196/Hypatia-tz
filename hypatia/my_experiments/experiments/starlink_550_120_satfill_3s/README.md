@@ -1,8 +1,7 @@
 ## Starlink 550 120 SatFill 3s
 
-This is a small Starlink matrix-filling experiment derived from the
-`starlink_550_324_uniform100_60s` workflow, but reduced to a 120-satellite
-shell so we can iterate faster.
+This is the active Starlink matrix-filling experiment in `my_experiments`.
+It uses a 120-satellite shell so dense path-flow dataset iterations stay fast.
 
 Current configuration:
 

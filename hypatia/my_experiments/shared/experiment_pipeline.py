@@ -1,7 +1,9 @@
-"""my_experiments 的可复用实验流水线。
+"""Pipeline used by the starlink_550_120_satfill_3s experiment.
 
-每个实验提供自己的 config 模块和 constellation helper。
-本模块负责通用流程，这样不同实验可以相互隔离，而不需要重复复制流水线逻辑。
+This project currently keeps one dataset-generation experiment.  The shared
+pipeline is intentionally narrow: satellite-anchored ground stations,
+stratified satellite-pair traffic, Starlink-120 constellation state generation,
+and ns-3 run-directory creation/execution.
 """
 
 import csv
@@ -12,7 +14,6 @@ import random
 import shutil
 import subprocess
 import sys
-from pathlib import Path
 
 
 def read_ground_stations(path):
@@ -24,7 +25,7 @@ def read_ground_stations(path):
                 continue
             parts = line.split(",")
             if len(parts) != 5:
-                raise ValueError(f"地面站文件中的行格式错误，文件: {path}，内容: {line}")
+                raise ValueError(f"Invalid ground station row in {path}: {line}")
             stations.append({
                 "local_gs_id": int(parts[0]),
                 "name": parts[1],
@@ -42,65 +43,6 @@ def _write_ground_stations_basic(path, stations):
                 f"{station['local_gs_id']},{station['name']},"
                 f"{station['latitude']},{station['longitude']},{station['altitude_m']}\n"
             )
-
-
-def _generate_uniform_global_ground_stations(config):
-    count = config.NUM_GROUND_STATIONS
-    seed = getattr(config, "GROUND_STATION_RANDOM_SEED", getattr(config, "TRAFFIC_SEED", 123456789))
-    rng = random.Random(seed)
-    lon_offset = rng.random() * 360.0
-    golden_angle = math.pi * (3.0 - math.sqrt(5.0))
-    stations = []
-
-    for idx in range(count):
-        z = 1.0 - 2.0 * ((idx + 0.5) / count)
-        latitude = math.degrees(math.asin(z))
-        longitude = ((math.degrees(idx * golden_angle) + lon_offset + 180.0) % 360.0) - 180.0
-        stations.append({
-            "local_gs_id": idx,
-            "source_gs_id": idx,
-            "name": f"UniformGlobal-{idx:03d}",
-            "latitude": round(latitude, 6),
-            "longitude": round(longitude, 6),
-            "altitude_m": 0.0,
-        })
-
-    _write_ground_stations_basic(config.GROUND_STATIONS_FILE, stations)
-    return stations
-
-
-def _generate_uniform_latitude_band_ground_stations(config):
-    count = config.NUM_GROUND_STATIONS
-    seed = getattr(config, "GROUND_STATION_RANDOM_SEED", getattr(config, "TRAFFIC_SEED", 123456789))
-    min_latitude = float(getattr(config, "GROUND_STATION_MIN_LATITUDE", -53.0))
-    max_latitude = float(getattr(config, "GROUND_STATION_MAX_LATITUDE", 53.0))
-    if min_latitude >= max_latitude:
-        raise ValueError("GROUND_STATION_MIN_LATITUDE must be smaller than GROUND_STATION_MAX_LATITUDE")
-    if min_latitude < -90.0 or max_latitude > 90.0:
-        raise ValueError("Latitude band must stay within [-90, 90] degrees")
-
-    rng = random.Random(seed)
-    lon_offset = rng.random() * 360.0
-    golden_angle = math.pi * (3.0 - math.sqrt(5.0))
-    z_min = math.sin(math.radians(min_latitude))
-    z_max = math.sin(math.radians(max_latitude))
-    stations = []
-
-    for idx in range(count):
-        z = z_max - (z_max - z_min) * ((idx + 0.5) / count)
-        latitude = math.degrees(math.asin(z))
-        longitude = ((math.degrees(idx * golden_angle) + lon_offset + 180.0) % 360.0) - 180.0
-        stations.append({
-            "local_gs_id": idx,
-            "source_gs_id": idx,
-            "name": f"UniformBand-{idx:04d}",
-            "latitude": round(latitude, 6),
-            "longitude": round(longitude, 6),
-            "altitude_m": 0.0,
-        })
-
-    _write_ground_stations_basic(config.GROUND_STATIONS_FILE, stations)
-    return stations
 
 
 def _normalize_longitude(longitude):
@@ -147,7 +89,8 @@ def _generate_satellite_anchored_ground_stations(config):
     helper = constellation.main_helper
     anchor_time_ns = int(getattr(config, "GROUND_STATION_ANCHOR_TIME_NS", 0))
     jitter_km = float(getattr(config, "GROUND_STATION_ANCHOR_JITTER_KM", 50.0))
-    rng = random.Random(getattr(config, "GROUND_STATION_RANDOM_SEED", getattr(config, "TRAFFIC_SEED", 123456789)))
+    seed = getattr(config, "GROUND_STATION_RANDOM_SEED", getattr(config, "TRAFFIC_SEED", 123456789))
+    rng = random.Random(seed)
 
     config.INPUT_DIR.mkdir(parents=True, exist_ok=True)
     anchor_tles = config.INPUT_DIR / f"{config.SATELLITE_NETWORK}_anchor_tles.txt"
@@ -163,12 +106,11 @@ def _generate_satellite_anchored_ground_stations(config):
         helper.MEAN_MOTION_REV_PER_DAY,
     )
     tle_info = satgen.read_tles(str(anchor_tles))
-    satellites = tle_info["satellites"]
     epoch = tle_info["epoch"]
     anchor_time = epoch + anchor_time_ns * u.ns
 
     stations = []
-    for sat_id, satellite in enumerate(satellites):
+    for sat_id, satellite in enumerate(tle_info["satellites"]):
         shadow = satgen.create_basic_ground_station_for_satellite_shadow(
             satellite,
             str(epoch),
@@ -183,17 +125,14 @@ def _generate_satellite_anchored_ground_stations(config):
             "altitude_m": 0.0,
         })
 
-    extra_count = count - num_satellites
-    for extra_idx in range(extra_count):
+    for extra_idx in range(count - num_satellites):
         sat_id = extra_idx % num_satellites
         base = stations[sat_id]
-        bearing = rng.random() * 360.0
-        distance_km = jitter_km * (0.5 + 0.5 * rng.random())
         latitude, longitude = _offset_lat_lon(
             base["latitude"],
             base["longitude"],
-            distance_km,
-            bearing,
+            jitter_km * (0.5 + 0.5 * rng.random()),
+            rng.random() * 360.0,
         )
         stations.append({
             "local_gs_id": len(stations),
@@ -208,67 +147,16 @@ def _generate_satellite_anchored_ground_stations(config):
     return stations
 
 
-def _select_ground_stations(config):
-    selection_mode = getattr(config, "GROUND_STATION_SELECTION_MODE", "copy")
-
-    if selection_mode == "uniform_global":
-        return _generate_uniform_global_ground_stations(config)
-
-    if selection_mode == "uniform_latitude_band":
-        return _generate_uniform_latitude_band_ground_stations(config)
-
-    if selection_mode == "satellite_anchored":
-        return _generate_satellite_anchored_ground_stations(config)
-
-    source_path = config.DEFAULT_GROUND_STATIONS_SOURCE
-
-    if selection_mode == "copy":
-        shutil.copyfile(source_path, config.GROUND_STATIONS_FILE)
-        stations = read_ground_stations(config.GROUND_STATIONS_FILE)
-        for station in stations:
-            station["source_gs_id"] = station["local_gs_id"]
-        return stations
-
-    if selection_mode != "random_sample":
-        raise ValueError(
-            "GROUND_STATION_SELECTION_MODE must be 'copy', 'random_sample', "
-            "'uniform_global', 'uniform_latitude_band', or 'satellite_anchored'"
-        )
-
-    candidates = read_ground_stations(source_path)
-    if len(candidates) < config.NUM_GROUND_STATIONS:
-        raise ValueError(
-            f"候选地面站不足：需要 {config.NUM_GROUND_STATIONS} 个，"
-            f"但 {source_path} 只有 {len(candidates)} 个"
-        )
-
-    seed = getattr(config, "GROUND_STATION_RANDOM_SEED", getattr(config, "TRAFFIC_SEED", 123456789))
-    rng = random.Random(seed)
-    selected = rng.sample(candidates, config.NUM_GROUND_STATIONS)
-    selected.sort(key=lambda station: station["local_gs_id"])
-
-    stations = []
-    for new_id, station in enumerate(selected):
-        stations.append({
-            "local_gs_id": new_id,
-            "source_gs_id": station["local_gs_id"],
-            "name": station["name"],
-            "latitude": station["latitude"],
-            "longitude": station["longitude"],
-            "altitude_m": station["altitude_m"],
-        })
-
-    _write_ground_stations_basic(config.GROUND_STATIONS_FILE, stations)
-    return stations
-
-
 def define_ground_stations(config):
-    config.INPUT_DIR.mkdir(parents=True, exist_ok=True)
+    mode = getattr(config, "GROUND_STATION_SELECTION_MODE", "satellite_anchored")
+    if mode != "satellite_anchored":
+        raise ValueError("Only GROUND_STATION_SELECTION_MODE='satellite_anchored' is supported")
 
-    stations = _select_ground_stations(config)
+    config.INPUT_DIR.mkdir(parents=True, exist_ok=True)
+    stations = _generate_satellite_anchored_ground_stations(config)
     if len(stations) != config.NUM_GROUND_STATIONS:
         raise ValueError(
-            f"地面站数量不匹配：期望 {config.NUM_GROUND_STATIONS} 个，实际得到 {len(stations)} 个"
+            f"Ground station count mismatch: expected {config.NUM_GROUND_STATIONS}, got {len(stations)}"
         )
 
     with open(config.GROUND_STATIONS_MANIFEST, "w", newline="", encoding="utf-8") as f:
@@ -279,9 +167,9 @@ def define_ground_stations(config):
         writer.writeheader()
         writer.writerows(stations)
 
-    print(f"已定义 {len(stations)} 个地面站")
-    print(f"地面站输入文件: {config.GROUND_STATIONS_FILE}")
-    print(f"地面站可读清单文件: {config.GROUND_STATIONS_MANIFEST}")
+    print(f"Defined {len(stations)} satellite-anchored ground stations")
+    print(f"Ground station file: {config.GROUND_STATIONS_FILE}")
+    print(f"Ground station manifest: {config.GROUND_STATIONS_MANIFEST}")
 
 
 def design_traffic(config):
@@ -296,14 +184,12 @@ def design_traffic(config):
     )
 
     config.INPUT_DIR.mkdir(parents=True, exist_ok=True)
-
     flows, traffic_matrix = generate_traffic_plan(config)
     write_schedule(config.TRAFFIC_SCHEDULE_FILE, flows)
     write_od_matrix_csv(config.TRAFFIC_MATRIX_FILE, traffic_matrix)
     write_station_activity_csv(config.TRAFFIC_ACTIVITY_FILE, station_activity_rows(config))
-    flow_details_file = getattr(config, "TRAFFIC_FLOW_DETAILS_FILE", None)
-    if flow_details_file is not None:
-        write_flow_pair_details_csv(flow_details_file, config, flows)
+    if getattr(config, "TRAFFIC_FLOW_DETAILS_FILE", None) is not None:
+        write_flow_pair_details_csv(config.TRAFFIC_FLOW_DETAILS_FILE, config, flows)
 
     summary = describe_traffic_plan(config, flows)
     with open(config.TRAFFIC_DESIGN_FILE, "w", encoding="utf-8") as f:
@@ -320,27 +206,19 @@ def design_traffic(config):
         f.write(f"schedule={config.TRAFFIC_SCHEDULE_FILE.name}\n")
         f.write(f"traffic_matrix={config.TRAFFIC_MATRIX_FILE.name}\n")
         f.write(f"station_activity={config.TRAFFIC_ACTIVITY_FILE.name}\n")
-        if flow_details_file is not None:
-            f.write(f"traffic_flow_details={flow_details_file.name}\n")
+        if getattr(config, "TRAFFIC_FLOW_DETAILS_FILE", None) is not None:
+            f.write(f"traffic_flow_details={config.TRAFFIC_FLOW_DETAILS_FILE.name}\n")
 
-    print(f"已生成 {len(flows)} 条 TCP 流")
-    print(f"总流量: {summary['total_size_byte']} 字节")
-    print(f"流量调度文件: {config.TRAFFIC_SCHEDULE_FILE}")
-    print(f"流量矩阵文件: {config.TRAFFIC_MATRIX_FILE}")
-    print(f"地面站活跃度文件: {config.TRAFFIC_ACTIVITY_FILE}")
-    if flow_details_file is not None:
-        print(f"流量 OD 明细文件: {flow_details_file}")
-    print(f"流量设计摘要文件: {config.TRAFFIC_DESIGN_FILE}")
+    print(f"Generated {len(flows)} TCP flows")
+    print(f"Total traffic: {summary['total_size_byte']} bytes")
+    print(f"Schedule: {config.TRAFFIC_SCHEDULE_FILE}")
+    print(f"Traffic matrix: {config.TRAFFIC_MATRIX_FILE}")
+    print(f"Traffic design summary: {config.TRAFFIC_DESIGN_FILE}")
 
 
 def generate_satellite_network_state(config, constellation_helper, threads):
     if not config.GROUND_STATIONS_FILE.exists():
-        raise FileNotFoundError(
-            f"地面站文件缺失: {config.GROUND_STATIONS_FILE}\n"
-            "请先运行地面站定义步骤。"
-        )
-
-    isl_shift = getattr(config, "ISL_SHIFT", getattr(config, "IRIDIUM_ISL_SHIFT", None))
+        raise FileNotFoundError(f"Missing ground station file: {config.GROUND_STATIONS_FILE}")
 
     constellation_helper.calculate(
         str(config.GEN_DATA_ROOT),
@@ -351,10 +229,9 @@ def generate_satellite_network_state(config, constellation_helper, threads):
         config.ROUTING_ALGORITHM,
         threads,
         ground_stations_basic_file=config.GROUND_STATIONS_FILE,
-        isl_shift=isl_shift,
+        isl_shift=getattr(config, "ISL_SHIFT", 0),
     )
-
-    print(f"已生成卫星网络状态目录: {config.generated_satellite_network_dir()}")
+    print(f"Generated satellite network state: {config.generated_satellite_network_dir()}")
 
 
 def _flow_ids_from_schedule(schedule_path):
@@ -371,27 +248,22 @@ def _write_ns3_config(config, config_path, flow_ids):
     run_dir = config.run_dir().resolve()
     satellite_network_dir = config.generated_satellite_network_dir().resolve()
     routes_dir = satellite_network_dir / config.dynamic_state_dir_name()
-    satellite_network_dir_rel = os.path.relpath(satellite_network_dir, run_dir)
-    routes_dir_rel = os.path.relpath(routes_dir, run_dir)
     tracking = "true" if config.ENABLE_ISL_UTILIZATION_TRACKING else "false"
-    satellite_path_tracking = "true" if getattr(config, "ENABLE_SATELLITE_PATH_TRACKING", False) else "false"
-    satellite_path_interval_ns = getattr(
+    path_tracking = "true" if getattr(config, "ENABLE_SATELLITE_PATH_TRACKING", False) else "false"
+    path_tracking_interval_ns = getattr(
         config,
         "SATELLITE_PATH_TRACKING_INTERVAL_NS",
         getattr(config, "ISL_UTILIZATION_TRACKING_INTERVAL_NS", 1_000_000_000),
     )
-    if getattr(config, "ENABLE_TCP_FLOW_LOGGING", True):
-        enabled_flow_ids = getattr(config, "TCP_FLOW_LOGGING_FLOW_IDS", flow_ids)
-    else:
-        enabled_flow_ids = []
+    enabled_flow_ids = flow_ids if getattr(config, "ENABLE_TCP_FLOW_LOGGING", True) else []
     flow_id_set = "set(" + ",".join(str(flow_id) for flow_id in enabled_flow_ids) + ")"
 
     lines = [
         f"simulation_end_time_ns={config.DURATION_S * 1000 * 1000 * 1000}",
         "simulation_seed=123456789",
         "",
-        f"satellite_network_dir={satellite_network_dir_rel}",
-        f"satellite_network_routes_dir={routes_dir_rel}",
+        f"satellite_network_dir={os.path.relpath(satellite_network_dir, run_dir)}",
+        f"satellite_network_routes_dir={os.path.relpath(routes_dir, run_dir)}",
         f"dynamic_state_update_interval_ns={config.TIME_STEP_MS * 1000 * 1000}",
         "",
         f"isl_data_rate_megabit_per_s={config.DATA_RATE_MBIT_PER_S}",
@@ -401,8 +273,8 @@ def _write_ns3_config(config, config_path, flow_ids):
         "",
         f"enable_isl_utilization_tracking={tracking}",
         f"isl_utilization_tracking_interval_ns={config.ISL_UTILIZATION_TRACKING_INTERVAL_NS}",
-        f"enable_satellite_path_tracking={satellite_path_tracking}",
-        f"satellite_path_tracking_interval_ns={satellite_path_interval_ns}",
+        f"enable_satellite_path_tracking={path_tracking}",
+        f"satellite_path_tracking_interval_ns={path_tracking_interval_ns}",
         "",
         f"tcp_socket_type={config.TCP_SOCKET_TYPE}",
         "",
@@ -416,15 +288,9 @@ def _write_ns3_config(config, config_path, flow_ids):
 
 def generate_ns3_run(config):
     if not config.generated_satellite_network_dir().exists():
-        raise FileNotFoundError(
-            f"卫星网络状态目录缺失: {config.generated_satellite_network_dir()}\n"
-            "请先运行卫星网络状态生成步骤。"
-        )
+        raise FileNotFoundError(f"Missing satellite network state: {config.generated_satellite_network_dir()}")
     if not config.TRAFFIC_SCHEDULE_FILE.exists():
-        raise FileNotFoundError(
-            f"流量调度文件缺失: {config.TRAFFIC_SCHEDULE_FILE}\n"
-            "请先运行流量设计步骤。"
-        )
+        raise FileNotFoundError(f"Missing traffic schedule: {config.TRAFFIC_SCHEDULE_FILE}")
 
     rd = config.run_dir()
     if rd.exists():
@@ -434,74 +300,42 @@ def generate_ns3_run(config):
 
     shutil.copyfile(config.TRAFFIC_SCHEDULE_FILE, rd / "schedule.csv")
 
-    # 将 ns-3 运行时需要读取的拓扑文件复制到 runs/main 目录。
-    # 这样 main_satnet 使用 --run_dir=runs/main 启动时，可以直接找到这些文件。
     satellite_network_dir = config.generated_satellite_network_dir()
-    required_files = [
-        "tles.txt",
-        "isls.txt",
-        "gsl_interfaces_info.txt",
-    ]
-
-    for filename in required_files:
+    for filename in ["tles.txt", "isls.txt", "gsl_interfaces_info.txt"]:
         src = satellite_network_dir / filename
-        dst = rd / filename
-        if src.exists():
-            shutil.copyfile(src, dst)
-        else:
-            raise FileNotFoundError(
-                f"ns-3 所需文件缺失: {src}\n"
-                f"无法生成完整运行目录: {rd}"
-            )
+        if not src.exists():
+            raise FileNotFoundError(f"Missing ns-3 input file: {src}")
+        shutil.copyfile(src, rd / filename)
 
-    optional_files = [
-        "description.txt",
-    ]
+    description = satellite_network_dir / "description.txt"
+    if description.exists():
+        shutil.copyfile(description, rd / "description.txt")
 
-    for filename in optional_files:
-        src = satellite_network_dir / filename
-        dst = rd / filename
-        if src.exists():
-            shutil.copyfile(src, dst)
+    _write_ns3_config(config, rd / "config_ns3.properties", _flow_ids_from_schedule(config.TRAFFIC_SCHEDULE_FILE))
 
-    _write_ns3_config(
-        config,
-        rd / "config_ns3.properties",
-        _flow_ids_from_schedule(config.TRAFFIC_SCHEDULE_FILE),
-    )
-
-    print(f"已生成 ns-3 运行目录: {rd}")
-    print(f"配置文件: {rd / 'config_ns3.properties'}")
-    print(f"流量调度文件: {rd / 'schedule.csv'}")
-    print(f"已复制卫星 TLE 文件: {rd / 'tles.txt'}")
-    print(f"已复制星间链路文件: {rd / 'isls.txt'}")
-    print(f"已复制 GSL 接口文件: {rd / 'gsl_interfaces_info.txt'}")
+    print(f"Generated ns-3 run directory: {rd}")
+    print(f"ns-3 config: {rd / 'config_ns3.properties'}")
 
 
 def run_ns3(config, build=False):
     rd = config.run_dir().resolve()
     if not (rd / "config_ns3.properties").exists():
-        raise FileNotFoundError(
-            f"ns-3 运行目录尚未准备好: {rd}\n"
-            "请先运行 ns-3 运行目录生成步骤。"
-        )
+        raise FileNotFoundError(f"ns-3 run directory is not ready: {rd}")
 
     ns3_root = config.HYPATIA_DIR / "ns3-sat-sim"
     simulator_dir = ns3_root / "simulator"
 
     if build:
-        print("正在编译 ns-3 仿真程序...")
+        print("Building ns-3 simulator...")
         subprocess.run(["bash", "build.sh", "--optimized"], cwd=ns3_root, check=True)
-        print("ns-3 仿真程序编译完成")
 
     console_log = rd / "logs_ns3" / "console.txt"
     console_log.parent.mkdir(parents=True, exist_ok=True)
     command = ["./waf", "--run", f"main_satnet --run_dir={rd}"]
 
-    print("正在运行 ns-3 仿真...")
-    print(f"运行目录: {rd}")
-    print(f"控制台日志将写入: {console_log}")
-
+    print("Running ns-3 simulation...")
+    print(f"Run directory: {rd}")
+    print(f"Console log: {console_log}")
     with open(console_log, "w", encoding="utf-8") as log_file:
         subprocess.run(
             command,
@@ -511,8 +345,7 @@ def run_ns3(config, build=False):
             check=True,
         )
 
-    print(f"ns-3 仿真完成: {rd}")
-    print(f"控制台日志: {console_log}")
+    print(f"ns-3 simulation completed: {rd}")
 
 
 def run_pipeline(config, constellation_helper, threads=4, build=False):
