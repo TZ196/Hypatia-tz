@@ -55,3 +55,8 @@ The diagnostic disables TCP, sends four high-rate UDP bursts, sets GSL to high
 bandwidth, and constrains ISL to low bandwidth with a one-packet queue. Its
 summary prints `drop_accounting_worked=True` when `sat_path_flow/drop_*`
 contains nonzero values.
+
+If it prints `drop_accounting_worked=False`, inspect the drop audit counters in
+the same summary. They distinguish whether satellite drop callbacks were never
+called, were called on packets without path tags, or were called after the
+packet path had already been closed.

@@ -86,6 +86,10 @@ private:
   static uint64_t s_transitPairObservations;
   static uint64_t s_nonAdjacentPairObservations;
   static uint64_t s_nonAdjacentBytes;
+  static uint64_t s_satelliteDropEvents;
+  static uint64_t s_satelliteDropEventsWithoutPathTag;
+  static uint64_t s_satelliteDropEventsWithoutOpenPath;
+  static uint64_t s_satelliteDropEventsRecorded;
   static std::unordered_map<uint64_t, std::vector<uint32_t> > s_pathSatellites;
   static std::unordered_map<uint64_t, std::vector<int64_t> > s_pathReceiveTimesNs;
   static std::unordered_map<uint64_t, uint64_t> s_pathFirstSeenBins;

@@ -155,6 +155,7 @@ def sum_matrix_dir(metric_dir: Path) -> int:
 
 def summarize(rd: Path) -> None:
     base_dir = rd / "logs_ns3" / "sat_path_flow"
+    metadata = read_metadata(base_dir / "metadata.txt")
     drop_bytes = sum_matrix_dir(base_dir / "drop_bytes")
     drop_packets = sum_matrix_dir(base_dir / "drop_packets")
     bytes_total = sum_matrix_dir(base_dir / "bytes")
@@ -167,8 +168,31 @@ def summarize(rd: Path) -> None:
     print(f"path_drop_bytes={drop_bytes}")
     print(f"path_drop_packets={drop_packets}")
     print(f"drop_accounting_worked={drop_bytes > 0 or drop_packets > 0}")
+    for key in [
+        "satellite_drop_events",
+        "satellite_drop_events_without_path_tag",
+        "satellite_drop_events_without_open_path",
+        "satellite_drop_events_recorded",
+        "open_packet_paths_at_finish",
+    ]:
+        if key in metadata:
+            print(f"{key}={metadata[key]}")
     print(f"metadata={base_dir / 'metadata.txt'}")
     print(f"console={rd / 'logs_ns3' / 'console.txt'}")
+
+
+def read_metadata(path: Path) -> dict[str, str]:
+    values = {}
+    if not path.exists():
+        return values
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            values[key] = value
+    return values
 
 
 def main():

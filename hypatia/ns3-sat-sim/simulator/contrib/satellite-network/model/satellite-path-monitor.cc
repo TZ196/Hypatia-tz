@@ -89,6 +89,10 @@ uint64_t SatellitePathMonitor::s_singleSatellitePathObservations = 0;
 uint64_t SatellitePathMonitor::s_transitPairObservations = 0;
 uint64_t SatellitePathMonitor::s_nonAdjacentPairObservations = 0;
 uint64_t SatellitePathMonitor::s_nonAdjacentBytes = 0;
+uint64_t SatellitePathMonitor::s_satelliteDropEvents = 0;
+uint64_t SatellitePathMonitor::s_satelliteDropEventsWithoutPathTag = 0;
+uint64_t SatellitePathMonitor::s_satelliteDropEventsWithoutOpenPath = 0;
+uint64_t SatellitePathMonitor::s_satelliteDropEventsRecorded = 0;
 std::unordered_map<uint64_t, std::vector<uint32_t> > SatellitePathMonitor::s_pathSatellites;
 std::unordered_map<uint64_t, std::vector<int64_t> > SatellitePathMonitor::s_pathReceiveTimesNs;
 std::unordered_map<uint64_t, uint64_t> SatellitePathMonitor::s_pathFirstSeenBins;
@@ -115,6 +119,10 @@ SatellitePathMonitor::Initialize (
   s_transitPairObservations = 0;
   s_nonAdjacentPairObservations = 0;
   s_nonAdjacentBytes = 0;
+  s_satelliteDropEvents = 0;
+  s_satelliteDropEventsWithoutPathTag = 0;
+  s_satelliteDropEventsWithoutOpenPath = 0;
+  s_satelliteDropEventsRecorded = 0;
   s_pathSatellites.clear ();
   s_pathReceiveTimesNs.clear ();
   s_pathFirstSeenBins.clear ();
@@ -208,15 +216,18 @@ SatellitePathMonitor::RecordSatelliteToGroundSend (Ptr<Packet> packet, uint32_t 
       return;
     }
 
+  s_satelliteDropEvents += 1;
   uint64_t pathId = 0;
   if (!GetExistingPathId (packet, pathId))
     {
+      s_satelliteDropEventsWithoutPathTag += 1;
       return;
     }
 
   auto it = s_pathSatellites.find (pathId);
   if (it == s_pathSatellites.end ())
     {
+      s_satelliteDropEventsWithoutOpenPath += 1;
       return;
     }
 
@@ -270,6 +281,7 @@ SatellitePathMonitor::RecordSatelliteDrop (Ptr<Packet> packet, uint32_t satellit
         }
     }
 
+  s_satelliteDropEventsRecorded += 1;
   s_pathSatellites.erase (it);
   s_pathReceiveTimesNs.erase (pathId);
   s_pathFirstSeenBins.erase (pathId);
@@ -472,6 +484,10 @@ SatellitePathMonitor::WriteCsvMatrices (void)
   metadata << "transit_pair_observations=" << s_transitPairObservations << std::endl;
   metadata << "non_adjacent_pair_observations=" << s_nonAdjacentPairObservations << std::endl;
   metadata << "non_adjacent_bytes=" << s_nonAdjacentBytes << std::endl;
+  metadata << "satellite_drop_events=" << s_satelliteDropEvents << std::endl;
+  metadata << "satellite_drop_events_without_path_tag=" << s_satelliteDropEventsWithoutPathTag << std::endl;
+  metadata << "satellite_drop_events_without_open_path=" << s_satelliteDropEventsWithoutOpenPath << std::endl;
+  metadata << "satellite_drop_events_recorded=" << s_satelliteDropEventsRecorded << std::endl;
   metadata << "open_packet_paths_at_finish=" << s_pathSatellites.size () << std::endl;
   WritePathLengthHistogram (metadata);
   metadata.close ();

@@ -79,7 +79,11 @@ python run_udp_drop_test.py --threads 4 --build
 
 This creates `runs/udp_drop_test/`, disables TCP, sends high-rate UDP bursts,
 uses high GSL bandwidth, and constrains ISL bandwidth/queue size to force
-device-level ISL drops after packets have entered satellite paths.
+device-level ISL drops after packets have entered satellite paths. If the
+drop matrices are still zero, inspect the printed drop audit counters:
+`satellite_drop_events`, `satellite_drop_events_without_path_tag`,
+`satellite_drop_events_without_open_path`, and
+`satellite_drop_events_recorded`.
 
 The pipeline stages are:
 
