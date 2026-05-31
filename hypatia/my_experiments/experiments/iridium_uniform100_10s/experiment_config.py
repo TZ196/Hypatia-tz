@@ -15,8 +15,10 @@ RUNS_DIR = EXPERIMENT_DIR / "runs"
 LOGS_DIR = EXPERIMENT_DIR / "logs"
 
 SHARED_INPUT_DIR = MY_EXPERIMENTS_DIR / "shared" / "input_data"
-GROUND_STATION_SELECTION_MODE = "uniform_global"
+GROUND_STATION_SELECTION_MODE = "satellite_anchored"
 GROUND_STATION_RANDOM_SEED = 123456789
+GROUND_STATION_ANCHOR_TIME_NS = 0
+GROUND_STATION_ANCHOR_JITTER_KM = 700
 GROUND_STATIONS_FILE = INPUT_DIR / "ground_stations.basic.txt"
 GROUND_STATIONS_MANIFEST = INPUT_DIR / "ground_stations_manifest.csv"
 TRAFFIC_SCHEDULE_FILE = INPUT_DIR / "schedule.csv"
@@ -29,20 +31,32 @@ SATELLITE_NETWORK = "iridium_780"
 DURATION_S = 10
 TIME_STEP_MS = 1000
 ISL_MODE = "isls_plus_grid"
-GS_SELECTION = "ground_stations_uniform_global_100"
+GS_SELECTION = "ground_stations_satellite_anchored_132"
 ROUTING_ALGORITHM = "algorithm_free_one_only_over_isls"
 
 NUM_SATELLITES = 66
-NUM_GROUND_STATIONS = 100
+NUM_ORBITS = 6
+NUM_SATS_PER_ORBIT = 11
+NUM_GROUND_STATIONS = 132
 GS_START_NODE_ID = NUM_SATELLITES
 ISL_SHIFT = 0
 IRIDIUM_ISL_SHIFT = ISL_SHIFT
 
-# 5000 directed long-distance flows over uniformly spread ground points.
-TRAFFIC_PAIR_MODE = "long_distance_balanced"
-TRAFFIC_FLOW_COUNT = 5000
+# Every source access satellite injects traffic to all 66 destination access satellites.
+TRAFFIC_PAIR_MODE = "satellite_pair_stratified"
+TRAFFIC_SATELLITE_PAIR_SAMPLE_K = 66
+TRAFFIC_INCLUDE_SELF_SAT_DEST = True
+TRAFFIC_NEAR_SAT_DISTANCE_MAX = 2
+TRAFFIC_MID_SAT_DISTANCE_MAX = 4
+TRAFFIC_SATELLITE_DISTANCE_STRATA_WEIGHTS = {
+    "near": 0.20,
+    "mid": 0.30,
+    "far": 0.30,
+    "cross_plane": 0.20,
+}
+TRAFFIC_FLOW_COUNT = NUM_SATELLITES * TRAFFIC_SATELLITE_PAIR_SAMPLE_K
 TRAFFIC_MIN_DISTANCE_KM = 5000
-TRAFFIC_MAX_FLOWS_PER_CITY_ROLE = 12
+TRAFFIC_MAX_FLOWS_PER_CITY_ROLE = 66
 TRAFFIC_PREFERRED_REGION_PAIRS = [
     ("Asia", "South America"),
     ("Asia", "Africa"),
@@ -62,9 +76,9 @@ TRAFFIC_RANDOMNESS_SIGMA = 0.35
 TRAFFIC_CAPACITY_SCOPE = "single_bottleneck"
 TRAFFIC_OFFERED_LOAD = 1.0
 
-# Make demands intentionally larger than a 10s run can drain under heavy sharing.
-TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES = 10_000_000
-TRAFFIC_MIN_FLOW_SIZE_BYTES = 5_000_000
+# Keep all sampled paths active with moderate per-flow demand.
+TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES = 15_000_000
+TRAFFIC_MIN_FLOW_SIZE_BYTES = 10_000_000
 TRAFFIC_MAX_FLOW_SIZE_BYTES = 20_000_000
 TRAFFIC_REFERENCE_BANDWIDTH_MBIT_PER_S = 100
 

@@ -282,6 +282,7 @@ def _allocate_stratum_counts(sample_k, stratum_weights):
 
 def _stratified_destination_satellites(config, src_sat, sample_k, rng):
     num_satellites = config.NUM_SATELLITES
+    include_self = bool(getattr(config, "TRAFFIC_INCLUDE_SELF_SAT_DEST", False))
     near_threshold = int(getattr(config, "TRAFFIC_NEAR_SAT_DISTANCE_MAX", 2))
     mid_threshold = int(getattr(config, "TRAFFIC_MID_SAT_DISTANCE_MAX", 5))
     weights = getattr(
@@ -298,7 +299,7 @@ def _stratified_destination_satellites(config, src_sat, sample_k, rng):
 
     strata = {name: [] for name in weights}
     for dst_sat in range(num_satellites):
-        if dst_sat == src_sat:
+        if dst_sat == src_sat and not include_self:
             continue
         grid_distance = _satellite_grid_distance(config, src_sat, dst_sat)
         same_plane = _same_orbit_plane(config, src_sat, dst_sat)
@@ -320,7 +321,11 @@ def _stratified_destination_satellites(config, src_sat, sample_k, rng):
             selected_set.add(dst_sat)
 
     if len(selected) < sample_k:
-        fallback = [sat_id for sat_id in range(num_satellites) if sat_id != src_sat and sat_id not in selected_set]
+        fallback = [
+            sat_id
+            for sat_id in range(num_satellites)
+            if (include_self or sat_id != src_sat) and sat_id not in selected_set
+        ]
         fallback.sort(key=lambda dst_sat: (_satellite_grid_distance(config, src_sat, dst_sat), rng.random()))
         for dst_sat in fallback:
             if len(selected) >= sample_k:
@@ -338,9 +343,11 @@ def _select_satellite_pair_stratified_pairs(
 ) -> list[tuple[int, int]]:
     num_satellites = config.NUM_SATELLITES
     sample_k = int(getattr(config, "TRAFFIC_SATELLITE_PAIR_SAMPLE_K", 100))
-    if sample_k < 1 or sample_k >= num_satellites:
+    include_self = bool(getattr(config, "TRAFFIC_INCLUDE_SELF_SAT_DEST", False))
+    max_k = num_satellites if include_self else (num_satellites - 1)
+    if sample_k < 1 or sample_k > max_k:
         raise ValueError(
-            f"TRAFFIC_SATELLITE_PAIR_SAMPLE_K must be in [1, {num_satellites - 1}], got {sample_k}"
+            f"TRAFFIC_SATELLITE_PAIR_SAMPLE_K must be in [1, {max_k}], got {sample_k}"
         )
 
     stations_by_satellite = _stations_by_anchor_satellite(stations)
