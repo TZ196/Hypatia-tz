@@ -293,58 +293,14 @@ def _allocate_flow_sizes(
     stations: list[GroundStation],
     rng: random.Random,
 ) -> list[int]:
-    min_size = int(getattr(config, "TRAFFIC_MIN_FLOW_SIZE_BYTES", 1))
-    max_size = int(getattr(config, "TRAFFIC_MAX_FLOW_SIZE_BYTES", min_size))
-    target_avg = int(getattr(config, "TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES", min_size))
-    if min_size <= 0 or max_size < min_size:
-        raise ValueError("Traffic flow size bounds are invalid")
-    if target_avg < min_size or target_avg > max_size:
-        raise ValueError("TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES must be within min/max flow size bounds")
-
-    station_by_id = {station.local_id: station for station in stations}
-    distance_power = float(getattr(config, "TRAFFIC_DISTANCE_WEIGHT_POWER", 1.0))
-    sigma = float(getattr(config, "TRAFFIC_RANDOMNESS_SIGMA", 0.0))
-    weights = []
-    for src, dst in pairs:
-        src_station = station_by_id[src]
-        dst_station = station_by_id[dst]
-        distance_km = _great_circle_distance_km(
-            src_station.latitude,
-            src_station.longitude,
-            dst_station.latitude,
-            dst_station.longitude,
-        )
-        base = max(distance_km / 1000.0, 1.0) ** distance_power
-        noise = rng.lognormvariate(0.0, sigma) if sigma > 0 else 1.0
-        weights.append(max(1e-12, base * noise))
-
-    total_budget = target_avg * len(pairs)
-    raw_sizes = [int(round(total_budget * weight / sum(weights))) for weight in weights]
-    sizes = [min(max_size, max(min_size, size)) for size in raw_sizes]
-    return _rebalance_sizes(sizes, total_budget, min_size, max_size)
-
-
-def _rebalance_sizes(sizes: list[int], target_total: int, min_size: int, max_size: int) -> list[int]:
-    delta = target_total - sum(sizes)
-    if delta == 0:
-        return sizes
-
-    step_direction = 1 if delta > 0 else -1
-    remaining = abs(delta)
-    idx = 0
-    unchanged_rounds = 0
-    while remaining > 0 and unchanged_rounds < len(sizes):
-        old_size = sizes[idx]
-        if step_direction > 0:
-            change = min(remaining, max_size - old_size)
-            sizes[idx] += change
-        else:
-            change = min(remaining, old_size - min_size)
-            sizes[idx] -= change
-        remaining -= change
-        unchanged_rounds = unchanged_rounds + 1 if change == 0 else 0
-        idx = (idx + 1) % len(sizes)
-    return sizes
+    flow_size = int(getattr(
+        config,
+        "TRAFFIC_FLOW_SIZE_BYTES",
+        getattr(config, "TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES", 15_000_000),
+    ))
+    if flow_size <= 0:
+        raise ValueError("TRAFFIC_FLOW_SIZE_BYTES must be positive")
+    return [flow_size for _pair in pairs]
 
 
 def _great_circle_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

@@ -42,6 +42,9 @@ private:
     uint64_t packets = 0;
     uint64_t dropBytes = 0;
     uint64_t dropPackets = 0;
+    long double delayNsByteSum = 0.0;
+    uint64_t delayWeightBytes = 0;
+    uint64_t delaySamples = 0;
   };
 
   static bool GetExistingPathId (Ptr<const Packet> packet, uint64_t& pathId);
@@ -49,12 +52,19 @@ private:
   static void EndPathIfPresent (Ptr<Packet> packet);
   static void ObservePathLength (uint64_t pathLength);
   static void Increment (uint32_t fromSat, uint32_t toSat, uint64_t bytes, bool isDrop);
+  static void IncrementDelay (uint32_t fromSat, uint32_t toSat, uint64_t bytes, int64_t delayNs);
   static void IncrementAtTimeBin (
       uint64_t timeBin,
       uint32_t fromSat,
       uint32_t toSat,
       uint64_t bytes,
       bool isDrop);
+  static void IncrementDelayAtTimeBin (
+      uint64_t timeBin,
+      uint32_t fromSat,
+      uint32_t toSat,
+      uint64_t bytes,
+      int64_t delayNs);
   static uint64_t CurrentTimeBin (void);
   static uint64_t MatrixKey (uint64_t timeBin, uint32_t fromSat, uint32_t toSat);
   static void WriteMetricMatrix (
@@ -77,6 +87,7 @@ private:
   static uint64_t s_nonAdjacentPairObservations;
   static uint64_t s_nonAdjacentBytes;
   static std::unordered_map<uint64_t, std::vector<uint32_t> > s_pathSatellites;
+  static std::unordered_map<uint64_t, std::vector<int64_t> > s_pathReceiveTimesNs;
   static std::unordered_map<uint64_t, uint64_t> s_pathFirstSeenBins;
   static std::vector<uint64_t> s_pathLengthHistogram;
   static std::map<uint64_t, Counter> s_counters;

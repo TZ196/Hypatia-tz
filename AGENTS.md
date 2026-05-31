@@ -40,15 +40,14 @@ The current experiment is a small matrix-filling Starlink shell:
 - 240 satellite-anchored ground stations
 - 3 seconds
 - `ISL_SHIFT = 0`
+- `ISL_DATA_RATE_MBIT_PER_S = 10_000`
+- `GSL_DATA_RATE_MBIT_PER_S = 10_000`
 - `120 * 120 = 14400` TCP flows
 - every source access satellite sends to every destination access satellite,
   including itself
 - self-satellite logical pairs must use two different ground stations anchored
   to the same satellite, because ns-3 rejects TCP flows from a node to itself
-- flow sizes are bounded by:
-  - `TRAFFIC_MIN_FLOW_SIZE_BYTES`
-  - `TRAFFIC_TARGET_AVG_FLOW_SIZE_BYTES`
-  - `TRAFFIC_MAX_FLOW_SIZE_BYTES`
+- every TCP flow uses the same size: `TRAFFIC_FLOW_SIZE_BYTES`
 
 The current shared pipeline supports only:
 
@@ -70,6 +69,17 @@ python run_pipeline.py --threads 4 --build
 
 Use `--build` after C++ changes or when the ns-3 binary has not been built.
 Omit it for repeat runs when the simulator binary is current.
+
+To test whether satellite path drop accounting is working, use the dedicated
+UDP diagnostic instead of the main TCP workload:
+
+```bash
+python run_udp_drop_test.py --threads 4 --build
+```
+
+This creates `runs/udp_drop_test/`, disables TCP, sends high-rate UDP bursts,
+uses high GSL bandwidth, and constrains ISL bandwidth/queue size to force
+device-level ISL drops after packets have entered satellite paths.
 
 The pipeline stages are:
 
@@ -113,6 +123,11 @@ Path-flow semantics:
   `A->C`, and `B->C`
 - diagonal `A->A` is only for single-satellite paths where traffic enters and
   exits through the same satellite
+- `one_way_delay_ns[A][B]` is the byte-weighted time between the packet receive
+  event at satellite `A` and the later receive event at satellite `B`
+- `rtt_ns[A][B]` is a satellite-path RTT estimate:
+  `one_way_delay_ns[A][B] + one_way_delay_ns[B][A]` within the same time bin
+  and is `0` if the reverse direction has no observation
 - `isl_utilization.csv` reports actual link utilization, not theoretical
   availability
 

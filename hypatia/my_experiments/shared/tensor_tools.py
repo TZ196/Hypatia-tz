@@ -272,6 +272,9 @@ def build_sat_path_tensors(config):
         ("packets", "sat_path_packets_tensor.npy"),
         ("drop_bytes", "sat_path_drop_bytes_tensor.npy"),
         ("drop_packets", "sat_path_drop_packets_tensor.npy"),
+        ("one_way_delay_ns", "sat_path_one_way_delay_ns_tensor.npy"),
+        ("one_way_delay_weight_bytes", "sat_path_one_way_delay_weight_bytes_tensor.npy"),
+        ("rtt_ns", "sat_path_rtt_ns_tensor.npy"),
     ]
 
     out_dir = _data_dir(config)

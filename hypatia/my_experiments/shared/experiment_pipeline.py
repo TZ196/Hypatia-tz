@@ -258,6 +258,9 @@ def _write_ns3_config(config, config_path, flow_ids):
     enabled_flow_ids = flow_ids if getattr(config, "ENABLE_TCP_FLOW_LOGGING", True) else []
     flow_id_set = "set(" + ",".join(str(flow_id) for flow_id in enabled_flow_ids) + ")"
 
+    isl_data_rate_mbit_per_s = getattr(config, "ISL_DATA_RATE_MBIT_PER_S", config.DATA_RATE_MBIT_PER_S)
+    gsl_data_rate_mbit_per_s = getattr(config, "GSL_DATA_RATE_MBIT_PER_S", config.DATA_RATE_MBIT_PER_S)
+
     lines = [
         f"simulation_end_time_ns={config.DURATION_S * 1000 * 1000 * 1000}",
         "simulation_seed=123456789",
@@ -266,8 +269,8 @@ def _write_ns3_config(config, config_path, flow_ids):
         f"satellite_network_routes_dir={os.path.relpath(routes_dir, run_dir)}",
         f"dynamic_state_update_interval_ns={config.TIME_STEP_MS * 1000 * 1000}",
         "",
-        f"isl_data_rate_megabit_per_s={config.DATA_RATE_MBIT_PER_S}",
-        f"gsl_data_rate_megabit_per_s={config.DATA_RATE_MBIT_PER_S}",
+        f"isl_data_rate_megabit_per_s={isl_data_rate_mbit_per_s}",
+        f"gsl_data_rate_megabit_per_s={gsl_data_rate_mbit_per_s}",
         f"isl_max_queue_size_pkts={config.QUEUE_SIZE_PKTS}",
         f"gsl_max_queue_size_pkts={config.QUEUE_SIZE_PKTS}",
         "",

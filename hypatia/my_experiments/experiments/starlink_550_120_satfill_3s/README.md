@@ -10,11 +10,12 @@ Current configuration:
 - one base ground station at each satellite shadow point at `t=0`
 - one jittered ground station per satellite, about 350-700 km from the base point
 - 3 seconds of simulation
+- 10 Gbit/s ISL and GSL links
 - `120 * 120 = 14400` directed TCP flows
 - per source satellite:
   every destination satellite is covered exactly once, including itself
   through mixed near/mid/far/cross-plane strata
-- each flow is 10-20 MB, with 15 MB target average
+- each flow is exactly 15 MB
 - `TRAFFIC_MIN_DISTANCE_KM = 3000`
 - `ISL_SHIFT = 0`
 
@@ -31,3 +32,26 @@ python run_pipeline.py --threads 4 --build
 - all 120 destination access satellites are covered for each source, including self loops
 - `logs_ns3/isl_utilization.csv` shows nonzero cross-plane bytes
 - `logs_ns3/sat_path_flow/metadata.txt` shows nonzero path observations
+- `logs_ns3/sat_path_flow/rtt_ns/` contains satellite-path RTT matrices
+- `logs_ns3/sat_path_flow/one_way_delay_ns/` contains byte-weighted one-way
+  satellite-path delay matrices
+
+## UDP Drop Diagnostic
+
+To verify that satellite path drop accounting can observe device-level drops,
+run the UDP stress test:
+
+```bash
+python run_udp_drop_test.py --threads 4 --build
+```
+
+It writes a separate run directory:
+
+```text
+runs/udp_drop_test/
+```
+
+The diagnostic disables TCP, sends four high-rate UDP bursts, sets GSL to high
+bandwidth, and constrains ISL to low bandwidth with a one-packet queue. Its
+summary prints `drop_accounting_worked=True` when `sat_path_flow/drop_*`
+contains nonzero values.

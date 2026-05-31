@@ -90,6 +90,7 @@ uint64_t SatellitePathMonitor::s_transitPairObservations = 0;
 uint64_t SatellitePathMonitor::s_nonAdjacentPairObservations = 0;
 uint64_t SatellitePathMonitor::s_nonAdjacentBytes = 0;
 std::unordered_map<uint64_t, std::vector<uint32_t> > SatellitePathMonitor::s_pathSatellites;
+std::unordered_map<uint64_t, std::vector<int64_t> > SatellitePathMonitor::s_pathReceiveTimesNs;
 std::unordered_map<uint64_t, uint64_t> SatellitePathMonitor::s_pathFirstSeenBins;
 std::vector<uint64_t> SatellitePathMonitor::s_pathLengthHistogram;
 std::map<uint64_t, SatellitePathMonitor::Counter> SatellitePathMonitor::s_counters;
@@ -115,6 +116,7 @@ SatellitePathMonitor::Initialize (
   s_nonAdjacentPairObservations = 0;
   s_nonAdjacentBytes = 0;
   s_pathSatellites.clear ();
+  s_pathReceiveTimesNs.clear ();
   s_pathFirstSeenBins.clear ();
   s_pathLengthHistogram.clear ();
   s_counters.clear ();
@@ -157,6 +159,8 @@ SatellitePathMonitor::RecordSatelliteReceive (Ptr<Packet> packet, uint32_t satel
 
   uint64_t pathId = GetOrCreatePathId (packet);
   std::vector<uint32_t>& path = s_pathSatellites[pathId];
+  std::vector<int64_t>& receiveTimesNs = s_pathReceiveTimesNs[pathId];
+  int64_t nowNs = Simulator::Now ().GetNanoSeconds ();
   s_satelliteReceiveEvents += 1;
 
   if (!path.empty () && path.back () == satelliteId)
@@ -178,6 +182,11 @@ SatellitePathMonitor::RecordSatelliteReceive (Ptr<Packet> packet, uint32_t satel
           continue;
         }
       Increment (fromSat, satelliteId, bytes, false);
+      if (pathIndex < receiveTimesNs.size ())
+        {
+          int64_t delayNs = nowNs - receiveTimesNs[pathIndex];
+          IncrementDelay (fromSat, satelliteId, bytes, delayNs);
+        }
       s_transitPairObservations += 1;
       if (fromSat != previousSatelliteId)
         {
@@ -187,6 +196,7 @@ SatellitePathMonitor::RecordSatelliteReceive (Ptr<Packet> packet, uint32_t satel
     }
 
   path.push_back (satelliteId);
+  receiveTimesNs.push_back (nowNs);
   ObservePathLength (path.size ());
 }
 
@@ -219,6 +229,7 @@ SatellitePathMonitor::RecordSatelliteToGroundSend (Ptr<Packet> packet, uint32_t 
     }
 
   s_pathSatellites.erase (it);
+  s_pathReceiveTimesNs.erase (pathId);
   s_pathFirstSeenBins.erase (pathId);
 }
 
@@ -260,6 +271,7 @@ SatellitePathMonitor::RecordSatelliteDrop (Ptr<Packet> packet, uint32_t satellit
     }
 
   s_pathSatellites.erase (it);
+  s_pathReceiveTimesNs.erase (pathId);
   s_pathFirstSeenBins.erase (pathId);
 }
 
@@ -309,6 +321,7 @@ SatellitePathMonitor::EndPathIfPresent (Ptr<Packet> packet)
   if (GetExistingPathId (packet, pathId))
     {
       s_pathSatellites.erase (pathId);
+      s_pathReceiveTimesNs.erase (pathId);
       s_pathFirstSeenBins.erase (pathId);
     }
 }
@@ -330,6 +343,12 @@ void
 SatellitePathMonitor::Increment (uint32_t fromSat, uint32_t toSat, uint64_t bytes, bool isDrop)
 {
   IncrementAtTimeBin (CurrentTimeBin (), fromSat, toSat, bytes, isDrop);
+}
+
+void
+SatellitePathMonitor::IncrementDelay (uint32_t fromSat, uint32_t toSat, uint64_t bytes, int64_t delayNs)
+{
+  IncrementDelayAtTimeBin (CurrentTimeBin (), fromSat, toSat, bytes, delayNs);
 }
 
 void
@@ -363,6 +382,35 @@ SatellitePathMonitor::IncrementAtTimeBin (
     }
 }
 
+void
+SatellitePathMonitor::IncrementDelayAtTimeBin (
+    uint64_t timeBin,
+    uint32_t fromSat,
+    uint32_t toSat,
+    uint64_t bytes,
+    int64_t delayNs)
+{
+  if (fromSat >= s_numSatellites || toSat >= s_numSatellites)
+    {
+      return;
+    }
+
+  if (timeBin >= s_numTimeBins)
+    {
+      return;
+    }
+
+  if (delayNs < 0 || bytes == 0)
+    {
+      return;
+    }
+
+  Counter& counter = s_counters[MatrixKey (timeBin, fromSat, toSat)];
+  counter.delayNsByteSum += static_cast<long double> (delayNs) * static_cast<long double> (bytes);
+  counter.delayWeightBytes += bytes;
+  counter.delaySamples += 1;
+}
+
 uint64_t
 SatellitePathMonitor::CurrentTimeBin (void)
 {
@@ -393,12 +441,18 @@ SatellitePathMonitor::WriteCsvMatrices (void)
   std::string packetsDir = baseDir + "/packets";
   std::string dropBytesDir = baseDir + "/drop_bytes";
   std::string dropPacketsDir = baseDir + "/drop_packets";
+  std::string oneWayDelayNsDir = baseDir + "/one_way_delay_ns";
+  std::string oneWayDelayWeightBytesDir = baseDir + "/one_way_delay_weight_bytes";
+  std::string rttNsDir = baseDir + "/rtt_ns";
 
   mkdir_if_not_exists (baseDir);
   mkdir_if_not_exists (bytesDir);
   mkdir_if_not_exists (packetsDir);
   mkdir_if_not_exists (dropBytesDir);
   mkdir_if_not_exists (dropPacketsDir);
+  mkdir_if_not_exists (oneWayDelayNsDir);
+  mkdir_if_not_exists (oneWayDelayWeightBytesDir);
+  mkdir_if_not_exists (rttNsDir);
 
   std::ofstream metadata (baseDir + "/metadata.txt");
   NS_ABORT_MSG_IF (!metadata.is_open (), "Could not open satellite path monitor metadata file");
@@ -409,6 +463,8 @@ SatellitePathMonitor::WriteCsvMatrices (void)
   metadata << "tracking_key=packet_tag_path_id" << std::endl;
   metadata << "tracking_point=satellite_receive" << std::endl;
   metadata << "semantics=receiver_monitor_expanded_to_all_earlier_current_satellite_pairs_single_satellite_paths_on_diagonal" << std::endl;
+  metadata << "one_way_delay_semantics=byte_weighted_time_between_receive_events_on_earlier_and_later_satellites" << std::endl;
+  metadata << "rtt_semantics=one_way_delay_ns[from][to]+one_way_delay_ns[to][from]_within_same_time_bin_zero_if_reverse_missing" << std::endl;
   metadata << "max_path_length_seen=" << s_maxPathLengthSeen << std::endl;
   metadata << "satellite_receive_events=" << s_satelliteReceiveEvents << std::endl;
   metadata << "path_tag_creations=" << s_pathTagCreations << std::endl;
@@ -427,6 +483,9 @@ SatellitePathMonitor::WriteCsvMatrices (void)
       std::vector<uint64_t> packets (matrixSize, 0);
       std::vector<uint64_t> dropBytes (matrixSize, 0);
       std::vector<uint64_t> dropPackets (matrixSize, 0);
+      std::vector<uint64_t> oneWayDelayNs (matrixSize, 0);
+      std::vector<uint64_t> oneWayDelayWeightBytes (matrixSize, 0);
+      std::vector<uint64_t> rttNs (matrixSize, 0);
 
       uint64_t firstKey = MatrixKey (t, 0, 0);
       uint64_t endKey = firstKey + matrixSize;
@@ -439,6 +498,30 @@ SatellitePathMonitor::WriteCsvMatrices (void)
           packets[matrixIndex] = it->second.packets;
           dropBytes[matrixIndex] = it->second.dropBytes;
           dropPackets[matrixIndex] = it->second.dropPackets;
+          oneWayDelayWeightBytes[matrixIndex] = it->second.delayWeightBytes;
+          if (it->second.delayWeightBytes > 0)
+            {
+              long double avgDelayNs =
+                it->second.delayNsByteSum / static_cast<long double> (it->second.delayWeightBytes);
+              oneWayDelayNs[matrixIndex] = static_cast<uint64_t> (avgDelayNs + 0.5);
+            }
+        }
+
+      for (uint32_t fromSat = 0; fromSat < s_numSatellites; fromSat++)
+        {
+          for (uint32_t toSat = 0; toSat < s_numSatellites; toSat++)
+            {
+              if (fromSat == toSat)
+                {
+                  continue;
+                }
+              uint64_t forwardIndex = static_cast<uint64_t> (fromSat) * s_numSatellites + toSat;
+              uint64_t reverseIndex = static_cast<uint64_t> (toSat) * s_numSatellites + fromSat;
+              if (oneWayDelayWeightBytes[forwardIndex] > 0 && oneWayDelayWeightBytes[reverseIndex] > 0)
+                {
+                  rttNs[forwardIndex] = oneWayDelayNs[forwardIndex] + oneWayDelayNs[reverseIndex];
+                }
+            }
         }
 
       std::ostringstream filename;
@@ -447,6 +530,9 @@ SatellitePathMonitor::WriteCsvMatrices (void)
       WriteMetricMatrix (packetsDir, filename.str (), packets);
       WriteMetricMatrix (dropBytesDir, filename.str (), dropBytes);
       WriteMetricMatrix (dropPacketsDir, filename.str (), dropPackets);
+      WriteMetricMatrix (oneWayDelayNsDir, filename.str (), oneWayDelayNs);
+      WriteMetricMatrix (oneWayDelayWeightBytesDir, filename.str (), oneWayDelayWeightBytes);
+      WriteMetricMatrix (rttNsDir, filename.str (), rttNs);
     }
 }
 
