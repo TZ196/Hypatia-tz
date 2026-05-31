@@ -41,12 +41,12 @@ NUM_GROUND_STATIONS = 240
 GS_START_NODE_ID = NUM_SATELLITES
 ISL_SHIFT = 0
 
-# Each source access satellite covers all 120 destinations once, then adds
-# 20 repeated destinations to push more bytes through mixed path strata.
+# Each source access satellite sends one flow to every destination access
+# satellite exactly once, including itself.
 TRAFFIC_PAIR_MODE = "satellite_pair_stratified"
-TRAFFIC_SATELLITE_PAIR_SAMPLE_K = 140
+TRAFFIC_SATELLITE_PAIR_SAMPLE_K = 120
 TRAFFIC_INCLUDE_SELF_SAT_DEST = True
-TRAFFIC_ALLOW_REPEATED_DEST_SAT = True
+TRAFFIC_ALLOW_REPEATED_DEST_SAT = False
 TRAFFIC_NEAR_SAT_DISTANCE_MAX = 2
 TRAFFIC_MID_SAT_DISTANCE_MAX = 4
 TRAFFIC_SATELLITE_DISTANCE_STRATA_WEIGHTS = {
@@ -57,7 +57,7 @@ TRAFFIC_SATELLITE_DISTANCE_STRATA_WEIGHTS = {
 }
 TRAFFIC_FLOW_COUNT = NUM_SATELLITES * TRAFFIC_SATELLITE_PAIR_SAMPLE_K
 TRAFFIC_MIN_DISTANCE_KM = 3000
-TRAFFIC_MAX_FLOWS_PER_CITY_ROLE = 140
+TRAFFIC_MAX_FLOWS_PER_CITY_ROLE = 120
 TRAFFIC_PREFERRED_REGION_PAIRS = [
     ("Asia", "South America"),
     ("Asia", "Africa"),

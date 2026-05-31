@@ -11,9 +11,9 @@ Current configuration:
 - one base ground station at each satellite shadow point at `t=0`
 - one jittered ground station per satellite, about 350-700 km from the base point
 - 3 seconds of simulation
-- `120 * 140 = 16800` directed TCP flows
+- `120 * 120 = 14400` directed TCP flows
 - per source satellite:
-  every destination satellite is covered once, then 20 repeated destinations are added
+  every destination satellite is covered exactly once, including itself
   through mixed near/mid/far/cross-plane strata
 - each flow is 10-20 MB, with 15 MB target average
 - `TRAFFIC_MIN_DISTANCE_KM = 3000`
@@ -29,6 +29,6 @@ python run_pipeline.py --threads 4 --build
 ## Check
 
 - every source access satellite injects traffic at `t=0`
-- all 120 destination access satellites are covered for each source before repeats
+- all 120 destination access satellites are covered for each source, including self loops
 - `logs_ns3/isl_utilization.csv` shows nonzero cross-plane bytes
 - `logs_ns3/sat_path_flow/metadata.txt` shows nonzero path observations
