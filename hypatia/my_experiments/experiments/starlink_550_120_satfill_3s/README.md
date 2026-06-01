@@ -16,7 +16,8 @@ Current configuration:
   every destination satellite is covered exactly once, including itself
   through mixed near/mid/far/cross-plane strata
 - each flow is exactly 15 MB
-- `TRAFFIC_MIN_DISTANCE_KM = 3000`
+- `TRAFFIC_MIN_DISTANCE_KM = 0`; satellite OD coverage is enforced directly
+  by the anchored source/destination satellite pair selection
 - `ISL_SHIFT = 0`
 
 ## Run
