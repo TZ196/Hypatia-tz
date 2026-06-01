@@ -177,6 +177,8 @@ def summarize(rd: Path) -> None:
         "satellite_drop_events_without_path_tag",
         "satellite_drop_events_without_open_path",
         "satellite_drop_events_recorded",
+        "satellite_drop_events_recorded_with_next_hop",
+        "satellite_drop_events_next_hop_not_satellite",
         "open_packet_paths_at_finish",
     ]:
         if key in metadata:

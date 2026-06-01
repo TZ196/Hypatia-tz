@@ -32,6 +32,11 @@ public:
   static void RecordSatelliteReceive (Ptr<Packet> packet, uint32_t satelliteId, uint64_t bytes);
   static void RecordSatelliteToGroundSend (Ptr<Packet> packet, uint32_t satelliteId, uint64_t bytes);
   static void RecordSatelliteDrop (Ptr<Packet> packet, uint32_t satelliteId, uint64_t bytes);
+  static void RecordSatelliteDrop (
+      Ptr<Packet> packet,
+      uint32_t satelliteId,
+      uint32_t nextHopNodeId,
+      uint64_t bytes);
   static void RecordGroundStationReceive (Ptr<Packet> packet);
   static void WriteCsvMatrices (void);
 
@@ -90,6 +95,8 @@ private:
   static uint64_t s_satelliteDropEventsWithoutPathTag;
   static uint64_t s_satelliteDropEventsWithoutOpenPath;
   static uint64_t s_satelliteDropEventsRecorded;
+  static uint64_t s_satelliteDropEventsRecordedWithNextHop;
+  static uint64_t s_satelliteDropEventsNextHopNotSatellite;
   static std::unordered_map<uint64_t, std::vector<uint32_t> > s_pathSatellites;
   static std::unordered_map<uint64_t, std::vector<int64_t> > s_pathReceiveTimesNs;
   static std::unordered_map<uint64_t, uint64_t> s_pathFirstSeenBins;

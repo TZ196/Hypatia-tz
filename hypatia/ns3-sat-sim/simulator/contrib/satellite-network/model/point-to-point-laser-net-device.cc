@@ -266,7 +266,7 @@ PointToPointLaserNetDevice::TransmitStart (Ptr<Packet> p)
   bool result = m_channel->TransmitStart (p, this, m_destination_node, txTime);
   if (result == false)
     {
-      SatellitePathMonitor::RecordSatelliteDrop (p, m_node->GetId (), p->GetSize ());
+      SatellitePathMonitor::RecordSatelliteDrop (p, m_node->GetId (), m_destination_node->GetId (), p->GetSize ());
       m_phyTxDropTrace (p);
     }
   return result;
@@ -545,7 +545,7 @@ PointToPointLaserNetDevice::Send (
   //
   if (IsLinkUp () == false)
     {
-      SatellitePathMonitor::RecordSatelliteDrop (packet, m_node->GetId (), packet->GetSize ());
+      SatellitePathMonitor::RecordSatelliteDrop (packet, m_node->GetId (), m_destination_node->GetId (), packet->GetSize ());
       m_macTxDropTrace (packet);
       return false;
     }
@@ -579,7 +579,7 @@ PointToPointLaserNetDevice::Send (
 
   // Enqueue may fail (overflow)
 
-  SatellitePathMonitor::RecordSatelliteDrop (packet, m_node->GetId (), packet->GetSize ());
+  SatellitePathMonitor::RecordSatelliteDrop (packet, m_node->GetId (), m_destination_node->GetId (), packet->GetSize ());
   m_macTxDropTrace (packet);
   return false;
 }

@@ -41,6 +41,8 @@ The final summary reports:
 - `satellite_drop_events_without_path_tag`
 - `satellite_drop_events_without_open_path`
 - `satellite_drop_events_recorded`
+- `satellite_drop_events_recorded_with_next_hop`
+- `satellite_drop_events_next_hop_not_satellite`
 
 If `path_drop_*` is zero, use the audit counters to identify whether the
 device-level drop callback was never reached, reached without a path tag, or
