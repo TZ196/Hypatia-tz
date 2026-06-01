@@ -31,7 +31,19 @@ def parse_args():
     parser.add_argument("--build", action="store_true", help="Build ns-3 before running")
     parser.add_argument("--isl-mbps", type=int, default=5, help="Diagnostic ISL bandwidth")
     parser.add_argument("--gsl-mbps", type=int, default=10_000, help="Diagnostic GSL bandwidth")
-    parser.add_argument("--queue-pkts", type=int, default=1, help="Diagnostic ISL/GSL queue size")
+    parser.add_argument("--isl-queue-pkts", type=int, default=1, help="Diagnostic ISL queue size")
+    parser.add_argument(
+        "--gsl-queue-pkts",
+        type=int,
+        default=100_000,
+        help="Diagnostic GSL queue size; keep this large so drops happen on satellite ISLs",
+    )
+    parser.add_argument(
+        "--queue-pkts",
+        type=int,
+        default=None,
+        help="Backward-compatible override for both ISL and GSL queue sizes",
+    )
     parser.add_argument("--udp-rate-mbps", type=int, default=5_000, help="Each UDP burst target rate")
     parser.add_argument("--duration-s", type=int, default=3, help="Diagnostic simulation duration")
     return parser.parse_args()
@@ -62,6 +74,8 @@ def write_udp_schedule(path: Path, udp_rate_mbps: int, duration_s: int) -> None:
 def write_ns3_config(path: Path, rd: Path, args) -> None:
     satellite_network_dir = config.generated_satellite_network_dir().resolve()
     routes_dir = satellite_network_dir / config.dynamic_state_dir_name()
+    isl_queue_pkts = args.queue_pkts if args.queue_pkts is not None else args.isl_queue_pkts
+    gsl_queue_pkts = args.queue_pkts if args.queue_pkts is not None else args.gsl_queue_pkts
 
     lines = [
         f"simulation_end_time_ns={args.duration_s * 1_000_000_000}",
@@ -73,8 +87,8 @@ def write_ns3_config(path: Path, rd: Path, args) -> None:
         "",
         f"isl_data_rate_megabit_per_s={args.isl_mbps}",
         f"gsl_data_rate_megabit_per_s={args.gsl_mbps}",
-        f"isl_max_queue_size_pkts={args.queue_pkts}",
-        f"gsl_max_queue_size_pkts={args.queue_pkts}",
+        f"isl_max_queue_size_pkts={isl_queue_pkts}",
+        f"gsl_max_queue_size_pkts={gsl_queue_pkts}",
         "",
         "enable_isl_utilization_tracking=true",
         f"isl_utilization_tracking_interval_ns={config.ISL_UTILIZATION_TRACKING_INTERVAL_NS}",

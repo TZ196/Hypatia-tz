@@ -83,9 +83,12 @@ python run_udp_drop_test.py --threads 4 --build
 ```
 
 This creates `runs/main/` under the UDP diagnostic directory, disables TCP, sends high-rate UDP bursts,
-uses high GSL bandwidth, and constrains ISL bandwidth/queue size to force
-device-level ISL drops after packets have entered satellite paths. If the
-drop matrices are still zero, inspect the printed drop audit counters:
+uses high GSL bandwidth, keeps GSL queues large, and constrains ISL bandwidth
+and ISL queue size to force device-level ISL drops after packets have entered
+satellite paths. Do not use a tiny GSL queue for this diagnostic; that can
+drop packets before they reach a satellite and will not produce a satellite
+path drop matrix entry. If the drop matrices are still zero, inspect the
+printed drop audit counters:
 `satellite_drop_events`, `satellite_drop_events_without_path_tag`,
 `satellite_drop_events_without_open_path`, and
 `satellite_drop_events_recorded`. ISL queue/transmit drops should be recorded
