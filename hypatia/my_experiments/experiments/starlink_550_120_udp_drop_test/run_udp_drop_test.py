@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Run a small UDP stress test for satellite path drop accounting.
 
-The main experiment uses TCP, whose socket buffering and congestion control can
-avoid device-queue overflow even under severe under-completion. This diagnostic
-uses open-loop UDP bursts, high GSL bandwidth, very low ISL bandwidth, and tiny
-queues so packets enter satellite paths and then pressure ISL queues.
+The main Starlink satfill experiment uses TCP, whose socket buffering and
+congestion control can avoid device-queue overflow even under severe
+under-completion. This diagnostic uses open-loop UDP bursts, high GSL
+bandwidth, very low ISL bandwidth, and tiny queues so packets enter satellite
+paths and then pressure ISL queues.
 """
 
 import argparse
@@ -24,9 +25,6 @@ from shared.constellation.main_starlink_550_120 import main_helper
 from shared.experiment_pipeline import define_ground_stations, generate_satellite_network_state
 
 
-RUN_NAME = "udp_drop_test"
-
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--threads", type=int, default=4)
@@ -39,14 +37,10 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_dir() -> Path:
-    return config.RUNS_DIR / RUN_NAME
-
-
 def write_udp_schedule(path: Path, udp_rate_mbps: int, duration_s: int) -> None:
     # Local ground station i is anchored to satellite i for i in [0, 119].
-    # These pairs are intentionally far apart in the satellite index space to
-    # encourage multi-hop and cross-plane satellite paths.
+    # These pairs are far apart in satellite index space to encourage multi-hop
+    # and cross-plane satellite paths.
     gs_start = config.GS_START_NODE_ID
     pairs = [
         (0, gs_start + 0, gs_start + 60),
@@ -73,8 +67,8 @@ def write_ns3_config(path: Path, rd: Path, args) -> None:
         f"simulation_end_time_ns={args.duration_s * 1_000_000_000}",
         "simulation_seed=123456789",
         "",
-        f"satellite_network_dir={relative(satellite_network_dir, rd)}",
-        f"satellite_network_routes_dir={relative(routes_dir, rd)}",
+        f"satellite_network_dir={os.path.relpath(satellite_network_dir, rd.resolve())}",
+        f"satellite_network_routes_dir={os.path.relpath(routes_dir, rd.resolve())}",
         f"dynamic_state_update_interval_ns={config.TIME_STEP_MS * 1_000_000}",
         "",
         f"isl_data_rate_megabit_per_s={args.isl_mbps}",
@@ -98,12 +92,8 @@ def write_ns3_config(path: Path, rd: Path, args) -> None:
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def relative(path: Path, base: Path) -> str:
-    return os.path.relpath(path.resolve(), base.resolve())
-
-
 def prepare_run_dir(args) -> Path:
-    rd = run_dir()
+    rd = config.run_dir()
     if rd.exists():
         shutil.rmtree(rd)
     rd.mkdir(parents=True)
@@ -153,6 +143,20 @@ def sum_matrix_dir(metric_dir: Path) -> int:
     return total
 
 
+def read_metadata(path: Path) -> dict[str, str]:
+    values = {}
+    if not path.exists():
+        return values
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            values[key] = value
+    return values
+
+
 def summarize(rd: Path) -> None:
     base_dir = rd / "logs_ns3" / "sat_path_flow"
     metadata = read_metadata(base_dir / "metadata.txt")
@@ -179,20 +183,6 @@ def summarize(rd: Path) -> None:
             print(f"{key}={metadata[key]}")
     print(f"metadata={base_dir / 'metadata.txt'}")
     print(f"console={rd / 'logs_ns3' / 'console.txt'}")
-
-
-def read_metadata(path: Path) -> dict[str, str]:
-    values = {}
-    if not path.exists():
-        return values
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line or "=" not in line:
-                continue
-            key, value = line.split("=", 1)
-            values[key] = value
-    return values
 
 
 def main():

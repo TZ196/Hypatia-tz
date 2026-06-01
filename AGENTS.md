@@ -1,9 +1,10 @@
 # Project Rules
 
-This repository currently keeps one active experiment under
-`hypatia/my_experiments`:
+This repository currently keeps one active dataset experiment under
+`hypatia/my_experiments` plus one isolated diagnostic experiment:
 
 - `experiments/starlink_550_120_satfill_3s`
+- `experiments/starlink_550_120_udp_drop_test`
 
 Old Iridium, Starlink-324, Kuiper, OneWeb, and Telesat experiment wrappers and
 constellation helpers have been intentionally removed. Do not reintroduce them
@@ -12,7 +13,10 @@ unless the user explicitly asks for a new experiment.
 ## Current Workspace Layout
 
 - `hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/`
-  contains the only active experiment.
+  contains the active TCP matrix-filling dataset experiment.
+- `hypatia/my_experiments/experiments/starlink_550_120_udp_drop_test/`
+  contains only the UDP drop-accounting diagnostic. Keep it separate from the
+  main dataset experiment.
 - `hypatia/my_experiments/shared/experiment_pipeline.py` contains the narrow
   shared pipeline for this experiment.
 - `hypatia/my_experiments/shared/traffic/traffic_plan.py` contains only the
@@ -71,13 +75,14 @@ Use `--build` after C++ changes or when the ns-3 binary has not been built.
 Omit it for repeat runs when the simulator binary is current.
 
 To test whether satellite path drop accounting is working, use the dedicated
-UDP diagnostic instead of the main TCP workload:
+UDP diagnostic experiment instead of the main TCP workload:
 
 ```bash
+cd hypatia/my_experiments/experiments/starlink_550_120_udp_drop_test
 python run_udp_drop_test.py --threads 4 --build
 ```
 
-This creates `runs/udp_drop_test/`, disables TCP, sends high-rate UDP bursts,
+This creates `runs/main/` under the UDP diagnostic directory, disables TCP, sends high-rate UDP bursts,
 uses high GSL bandwidth, and constrains ISL bandwidth/queue size to force
 device-level ISL drops after packets have entered satellite paths. If the
 drop matrices are still zero, inspect the printed drop audit counters:
