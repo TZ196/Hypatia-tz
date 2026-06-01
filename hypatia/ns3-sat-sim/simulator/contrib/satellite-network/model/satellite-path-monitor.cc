@@ -95,9 +95,14 @@ uint64_t SatellitePathMonitor::s_satelliteDropEventsWithoutOpenPath = 0;
 uint64_t SatellitePathMonitor::s_satelliteDropEventsRecorded = 0;
 uint64_t SatellitePathMonitor::s_satelliteDropEventsRecordedWithNextHop = 0;
 uint64_t SatellitePathMonitor::s_satelliteDropEventsNextHopNotSatellite = 0;
+uint64_t SatellitePathMonitor::s_unfinishedPathEventsAtFinish = 0;
+uint64_t SatellitePathMonitor::s_unfinishedPathEventsRecorded = 0;
+uint64_t SatellitePathMonitor::s_unfinishedPathBytesAtFinish = 0;
 std::unordered_map<uint64_t, std::vector<uint32_t> > SatellitePathMonitor::s_pathSatellites;
 std::unordered_map<uint64_t, std::vector<int64_t> > SatellitePathMonitor::s_pathReceiveTimesNs;
 std::unordered_map<uint64_t, uint64_t> SatellitePathMonitor::s_pathFirstSeenBins;
+std::unordered_map<uint64_t, uint64_t> SatellitePathMonitor::s_pathLastSeenBins;
+std::unordered_map<uint64_t, uint64_t> SatellitePathMonitor::s_pathLastBytes;
 std::vector<uint64_t> SatellitePathMonitor::s_pathLengthHistogram;
 std::map<uint64_t, SatellitePathMonitor::Counter> SatellitePathMonitor::s_counters;
 
@@ -127,9 +132,14 @@ SatellitePathMonitor::Initialize (
   s_satelliteDropEventsRecorded = 0;
   s_satelliteDropEventsRecordedWithNextHop = 0;
   s_satelliteDropEventsNextHopNotSatellite = 0;
+  s_unfinishedPathEventsAtFinish = 0;
+  s_unfinishedPathEventsRecorded = 0;
+  s_unfinishedPathBytesAtFinish = 0;
   s_pathSatellites.clear ();
   s_pathReceiveTimesNs.clear ();
   s_pathFirstSeenBins.clear ();
+  s_pathLastSeenBins.clear ();
+  s_pathLastBytes.clear ();
   s_pathLengthHistogram.clear ();
   s_counters.clear ();
 
@@ -173,6 +183,7 @@ SatellitePathMonitor::RecordSatelliteReceive (Ptr<Packet> packet, uint32_t satel
   std::vector<uint32_t>& path = s_pathSatellites[pathId];
   std::vector<int64_t>& receiveTimesNs = s_pathReceiveTimesNs[pathId];
   int64_t nowNs = Simulator::Now ().GetNanoSeconds ();
+  uint64_t nowBin = CurrentTimeBin ();
   s_satelliteReceiveEvents += 1;
 
   if (!path.empty () && path.back () == satelliteId)
@@ -182,8 +193,10 @@ SatellitePathMonitor::RecordSatelliteReceive (Ptr<Packet> packet, uint32_t satel
 
   if (path.empty ())
     {
-      s_pathFirstSeenBins[pathId] = CurrentTimeBin ();
+      s_pathFirstSeenBins[pathId] = nowBin;
     }
+  s_pathLastSeenBins[pathId] = nowBin;
+  s_pathLastBytes[pathId] = bytes;
 
   uint32_t previousSatelliteId = path.empty () ? satelliteId : path.back ();
   for (uint32_t pathIndex = 0; pathIndex < path.size (); pathIndex++)
@@ -243,6 +256,8 @@ SatellitePathMonitor::RecordSatelliteToGroundSend (Ptr<Packet> packet, uint32_t 
   s_pathSatellites.erase (it);
   s_pathReceiveTimesNs.erase (pathId);
   s_pathFirstSeenBins.erase (pathId);
+  s_pathLastSeenBins.erase (pathId);
+  s_pathLastBytes.erase (pathId);
 }
 
 void
@@ -289,6 +304,8 @@ SatellitePathMonitor::RecordSatelliteDrop (Ptr<Packet> packet, uint32_t satellit
   s_pathSatellites.erase (it);
   s_pathReceiveTimesNs.erase (pathId);
   s_pathFirstSeenBins.erase (pathId);
+  s_pathLastSeenBins.erase (pathId);
+  s_pathLastBytes.erase (pathId);
 }
 
 void
@@ -351,6 +368,8 @@ SatellitePathMonitor::RecordSatelliteDrop (
   s_pathSatellites.erase (it);
   s_pathReceiveTimesNs.erase (pathId);
   s_pathFirstSeenBins.erase (pathId);
+  s_pathLastSeenBins.erase (pathId);
+  s_pathLastBytes.erase (pathId);
 }
 
 void
@@ -401,6 +420,8 @@ SatellitePathMonitor::EndPathIfPresent (Ptr<Packet> packet)
       s_pathSatellites.erase (pathId);
       s_pathReceiveTimesNs.erase (pathId);
       s_pathFirstSeenBins.erase (pathId);
+      s_pathLastSeenBins.erase (pathId);
+      s_pathLastBytes.erase (pathId);
     }
 }
 
@@ -414,6 +435,89 @@ SatellitePathMonitor::ObservePathLength (uint64_t pathLength)
   if (pathLength < s_pathLengthHistogram.size ())
     {
       s_pathLengthHistogram[pathLength] += 1;
+    }
+}
+
+void
+SatellitePathMonitor::AccountUnfinishedPathsAtFinish (void)
+{
+  s_unfinishedPathEventsAtFinish = s_pathSatellites.size ();
+  s_unfinishedPathEventsRecorded = 0;
+  s_unfinishedPathBytesAtFinish = 0;
+
+  std::vector<uint64_t> pathIds;
+  pathIds.reserve (s_pathSatellites.size ());
+  for (const auto& item : s_pathSatellites)
+    {
+      pathIds.push_back (item.first);
+    }
+
+  uint64_t fallbackTimeBin = s_numTimeBins == 0 ? 0 : s_numTimeBins - 1;
+  for (uint64_t pathId : pathIds)
+    {
+      auto pathIt = s_pathSatellites.find (pathId);
+      if (pathIt == s_pathSatellites.end () || pathIt->second.empty ())
+        {
+          continue;
+        }
+
+      const std::vector<uint32_t>& path = pathIt->second;
+      uint32_t lastSat = path.back ();
+      uint64_t bytes = 0;
+      auto bytesIt = s_pathLastBytes.find (pathId);
+      if (bytesIt != s_pathLastBytes.end ())
+        {
+          bytes = bytesIt->second;
+        }
+
+      uint64_t timeBin = fallbackTimeBin;
+      auto lastSeenIt = s_pathLastSeenBins.find (pathId);
+      if (lastSeenIt != s_pathLastSeenBins.end ())
+        {
+          timeBin = lastSeenIt->second;
+        }
+      else
+        {
+          auto firstSeenIt = s_pathFirstSeenBins.find (pathId);
+          if (firstSeenIt != s_pathFirstSeenBins.end ())
+            {
+              timeBin = firstSeenIt->second;
+            }
+        }
+      if (timeBin >= s_numTimeBins)
+        {
+          timeBin = fallbackTimeBin;
+        }
+
+      bool recorded = false;
+      if (path.size () == 1)
+        {
+          IncrementAtTimeBin (timeBin, lastSat, lastSat, bytes, true);
+          recorded = true;
+        }
+      else
+        {
+          for (uint32_t fromSat : path)
+            {
+              if (fromSat != lastSat)
+                {
+                  IncrementAtTimeBin (timeBin, fromSat, lastSat, bytes, true);
+                  recorded = true;
+                }
+            }
+        }
+
+      if (recorded)
+        {
+          s_unfinishedPathEventsRecorded += 1;
+          s_unfinishedPathBytesAtFinish += bytes;
+        }
+
+      s_pathSatellites.erase (pathId);
+      s_pathReceiveTimesNs.erase (pathId);
+      s_pathFirstSeenBins.erase (pathId);
+      s_pathLastSeenBins.erase (pathId);
+      s_pathLastBytes.erase (pathId);
     }
 }
 
@@ -514,6 +618,8 @@ SatellitePathMonitor::WriteCsvMatrices (void)
       return;
     }
 
+  AccountUnfinishedPathsAtFinish ();
+
   std::string baseDir = s_logsDir + "/sat_path_flow";
   std::string bytesDir = baseDir + "/bytes";
   std::string packetsDir = baseDir + "/packets";
@@ -541,6 +647,8 @@ SatellitePathMonitor::WriteCsvMatrices (void)
   metadata << "tracking_key=packet_tag_path_id" << std::endl;
   metadata << "tracking_point=satellite_receive" << std::endl;
   metadata << "semantics=receiver_monitor_expanded_to_all_earlier_current_satellite_pairs_single_satellite_paths_on_diagonal" << std::endl;
+  metadata << "drop_semantics=device_level_satellite_drops_plus_unfinished_open_packet_paths_at_simulation_finish" << std::endl;
+  metadata << "unfinished_path_drop_attribution=last_observed_satellite_single_satellite_paths_on_diagonal" << std::endl;
   metadata << "one_way_delay_semantics=byte_weighted_time_between_receive_events_on_earlier_and_later_satellites" << std::endl;
   metadata << "rtt_semantics=one_way_delay_ns[from][to]+one_way_delay_ns[to][from]_within_same_time_bin_zero_if_reverse_missing" << std::endl;
   metadata << "max_path_length_seen=" << s_maxPathLengthSeen << std::endl;
@@ -556,7 +664,11 @@ SatellitePathMonitor::WriteCsvMatrices (void)
   metadata << "satellite_drop_events_recorded=" << s_satelliteDropEventsRecorded << std::endl;
   metadata << "satellite_drop_events_recorded_with_next_hop=" << s_satelliteDropEventsRecordedWithNextHop << std::endl;
   metadata << "satellite_drop_events_next_hop_not_satellite=" << s_satelliteDropEventsNextHopNotSatellite << std::endl;
-  metadata << "open_packet_paths_at_finish=" << s_pathSatellites.size () << std::endl;
+  metadata << "unfinished_path_events_at_finish=" << s_unfinishedPathEventsAtFinish << std::endl;
+  metadata << "unfinished_path_events_recorded=" << s_unfinishedPathEventsRecorded << std::endl;
+  metadata << "unfinished_path_bytes_at_finish=" << s_unfinishedPathBytesAtFinish << std::endl;
+  metadata << "open_packet_paths_at_finish=" << s_unfinishedPathEventsAtFinish << std::endl;
+  metadata << "open_packet_paths_after_finish_accounting=" << s_pathSatellites.size () << std::endl;
   WritePathLengthHistogram (metadata);
   metadata.close ();
 

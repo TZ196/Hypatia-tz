@@ -230,7 +230,11 @@ def summarize(rd: Path) -> None:
         "satellite_drop_events_recorded",
         "satellite_drop_events_recorded_with_next_hop",
         "satellite_drop_events_next_hop_not_satellite",
+        "unfinished_path_events_at_finish",
+        "unfinished_path_events_recorded",
+        "unfinished_path_bytes_at_finish",
         "open_packet_paths_at_finish",
+        "open_packet_paths_after_finish_accounting",
     ]:
         if key in metadata:
             print(f"{key}={metadata[key]}")

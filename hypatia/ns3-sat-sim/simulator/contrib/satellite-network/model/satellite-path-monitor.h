@@ -56,6 +56,7 @@ private:
   static uint64_t GetOrCreatePathId (Ptr<Packet> packet);
   static void EndPathIfPresent (Ptr<Packet> packet);
   static void ObservePathLength (uint64_t pathLength);
+  static void AccountUnfinishedPathsAtFinish (void);
   static void Increment (uint32_t fromSat, uint32_t toSat, uint64_t bytes, bool isDrop);
   static void IncrementDelay (uint32_t fromSat, uint32_t toSat, uint64_t bytes, int64_t delayNs);
   static void IncrementAtTimeBin (
@@ -97,9 +98,14 @@ private:
   static uint64_t s_satelliteDropEventsRecorded;
   static uint64_t s_satelliteDropEventsRecordedWithNextHop;
   static uint64_t s_satelliteDropEventsNextHopNotSatellite;
+  static uint64_t s_unfinishedPathEventsAtFinish;
+  static uint64_t s_unfinishedPathEventsRecorded;
+  static uint64_t s_unfinishedPathBytesAtFinish;
   static std::unordered_map<uint64_t, std::vector<uint32_t> > s_pathSatellites;
   static std::unordered_map<uint64_t, std::vector<int64_t> > s_pathReceiveTimesNs;
   static std::unordered_map<uint64_t, uint64_t> s_pathFirstSeenBins;
+  static std::unordered_map<uint64_t, uint64_t> s_pathLastSeenBins;
+  static std::unordered_map<uint64_t, uint64_t> s_pathLastBytes;
   static std::vector<uint64_t> s_pathLengthHistogram;
   static std::map<uint64_t, Counter> s_counters;
 };

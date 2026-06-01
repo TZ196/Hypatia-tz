@@ -95,6 +95,11 @@ printed drop audit counters:
 with explicit next-hop attribution in
 `satellite_drop_events_recorded_with_next_hop`, which maps directly to
 `drop_bytes[from_sat][next_hop_sat]` and `drop_packets[from_sat][next_hop_sat]`.
+If `satellite_drop_events*` is zero but `unfinished_path_events_at_finish` is
+positive, packets entered satellite paths but remained undelivered when the
+simulation stopped. The path monitor accounts these unfinished paths into
+`drop_bytes` and `drop_packets` at the last observed satellite, so the loss
+matrix covers both explicit device drops and under-completed open paths.
 
 The pipeline stages are:
 

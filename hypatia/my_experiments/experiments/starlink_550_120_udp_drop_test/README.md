@@ -44,13 +44,16 @@ The final summary reports:
 - `satellite_drop_events_recorded`
 - `satellite_drop_events_recorded_with_next_hop`
 - `satellite_drop_events_next_hop_not_satellite`
+- `unfinished_path_events_at_finish`
+- `unfinished_path_events_recorded`
+- `unfinished_path_bytes_at_finish`
 
 If `path_drop_*` is zero, use the audit counters to identify whether the
 device-level drop callback was never reached, reached without a path tag, or
 reached after the open path had already been removed.
 
 If all `satellite_drop_events*` counters are zero while many UDP packets are
-not delivered, the loss happened before a satellite device drop hook. The most
-common cause is a tiny GSL/source queue or UDP socket admission failure. Keep
-GSL queues large and ISL queues tiny when testing satellite-path drop
-accounting.
+not delivered, but `unfinished_path_events_at_finish` is positive, the packets
+entered satellite paths and were still open when the simulation stopped. These
+unfinished paths are accounted in `drop_bytes` and `drop_packets` at the last
+observed satellite so loss matrices include under-completed traffic.
