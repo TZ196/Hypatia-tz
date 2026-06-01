@@ -1,4 +1,4 @@
-## Starlink 550 120 SatFill 3s
+## Starlink 550 120 SatFill 30s
 
 This is the active Starlink matrix-filling experiment in `my_experiments`.
 It uses a 120-satellite shell so dense path-flow dataset iterations stay fast.
@@ -9,7 +9,7 @@ Current configuration:
 - 240 satellite-anchored ground stations, exactly `2 * NUM_SATELLITES`
 - one base ground station at each satellite shadow point at `t=0`
 - one jittered ground station per satellite, about 350-700 km from the base point
-- 3 seconds of simulation
+- 30 seconds of simulation
 - 10 Gbit/s ISL and GSL links
 - `120 * 120 = 14400` directed TCP flows
 - per source satellite:

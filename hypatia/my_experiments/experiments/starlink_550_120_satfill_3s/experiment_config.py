@@ -27,7 +27,7 @@ TRAFFIC_ACTIVITY_FILE = INPUT_DIR / "station_activity.csv"
 TRAFFIC_FLOW_DETAILS_FILE = INPUT_DIR / "traffic_flow_details.csv"
 
 SATELLITE_NETWORK = "starlink_550_120"
-DURATION_S = 3
+DURATION_S = 30
 TIME_STEP_MS = 1000
 ISL_MODE = "isls_plus_grid"
 GS_SELECTION = "ground_stations_satellite_anchored_240"
