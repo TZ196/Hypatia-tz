@@ -32,5 +32,5 @@ python run_pipeline.py --threads 4 --build
 - `logs_ns3/isl_utilization.csv` shows nonzero cross-plane bytes
 - `logs_ns3/sat_path_flow/metadata.txt` shows nonzero path observations
 - `logs_ns3/sat_path_flow/rtt_ns/` contains satellite-path RTT matrices
-- `logs_ns3/sat_path_flow/one_way_delay_ns/` contains byte-weighted one-way
-  satellite-path delay matrices
+- `logs_ns3/sat_path_flow/bytes/` and `drop_bytes/` contain path traffic and
+  unfinished/drop attribution matrices

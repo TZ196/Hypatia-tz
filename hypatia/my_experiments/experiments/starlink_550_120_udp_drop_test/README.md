@@ -37,7 +37,6 @@ runs/main/
 The final summary reports:
 
 - `path_drop_bytes`
-- `path_drop_packets`
 - `satellite_drop_events`
 - `satellite_drop_events_without_path_tag`
 - `satellite_drop_events_without_open_path`
@@ -55,5 +54,6 @@ reached after the open path had already been removed.
 If all `satellite_drop_events*` counters are zero while many UDP packets are
 not delivered, but `unfinished_path_events_at_finish` is positive, the packets
 entered satellite paths and were still open when the simulation stopped. These
-unfinished paths are accounted in `drop_bytes` and `drop_packets` at the last
-observed satellite so loss matrices include under-completed traffic.
+unfinished paths are accounted in `drop_bytes` at the last observed satellite
+so loss accounting includes under-completed traffic. Packet counters are
+retained internally but are not written as CSV matrices.

@@ -622,20 +622,12 @@ SatellitePathMonitor::WriteCsvMatrices (void)
 
   std::string baseDir = s_logsDir + "/sat_path_flow";
   std::string bytesDir = baseDir + "/bytes";
-  std::string packetsDir = baseDir + "/packets";
   std::string dropBytesDir = baseDir + "/drop_bytes";
-  std::string dropPacketsDir = baseDir + "/drop_packets";
-  std::string oneWayDelayNsDir = baseDir + "/one_way_delay_ns";
-  std::string oneWayDelayWeightBytesDir = baseDir + "/one_way_delay_weight_bytes";
   std::string rttNsDir = baseDir + "/rtt_ns";
 
   mkdir_if_not_exists (baseDir);
   mkdir_if_not_exists (bytesDir);
-  mkdir_if_not_exists (packetsDir);
   mkdir_if_not_exists (dropBytesDir);
-  mkdir_if_not_exists (dropPacketsDir);
-  mkdir_if_not_exists (oneWayDelayNsDir);
-  mkdir_if_not_exists (oneWayDelayWeightBytesDir);
   mkdir_if_not_exists (rttNsDir);
 
   std::ofstream metadata (baseDir + "/metadata.txt");
@@ -649,8 +641,8 @@ SatellitePathMonitor::WriteCsvMatrices (void)
   metadata << "semantics=receiver_monitor_expanded_to_all_earlier_current_satellite_pairs_single_satellite_paths_on_diagonal" << std::endl;
   metadata << "drop_semantics=device_level_satellite_drops_plus_unfinished_open_packet_paths_at_simulation_finish" << std::endl;
   metadata << "unfinished_path_drop_attribution=last_observed_satellite_single_satellite_paths_on_diagonal" << std::endl;
-  metadata << "one_way_delay_semantics=byte_weighted_time_between_receive_events_on_earlier_and_later_satellites" << std::endl;
-  metadata << "rtt_semantics=one_way_delay_ns[from][to]+one_way_delay_ns[to][from]_within_same_time_bin_zero_if_reverse_missing" << std::endl;
+  metadata << "written_metrics=bytes,drop_bytes,rtt_ns" << std::endl;
+  metadata << "rtt_semantics=internal_byte_weighted_one_way_delay[from][to]+internal_byte_weighted_one_way_delay[to][from]_within_same_time_bin_zero_if_reverse_missing" << std::endl;
   metadata << "max_path_length_seen=" << s_maxPathLengthSeen << std::endl;
   metadata << "satellite_receive_events=" << s_satelliteReceiveEvents << std::endl;
   metadata << "path_tag_creations=" << s_pathTagCreations << std::endl;
@@ -676,9 +668,7 @@ SatellitePathMonitor::WriteCsvMatrices (void)
   for (uint64_t t = 0; t < s_numTimeBins; t++)
     {
       std::vector<uint64_t> bytes (matrixSize, 0);
-      std::vector<uint64_t> packets (matrixSize, 0);
       std::vector<uint64_t> dropBytes (matrixSize, 0);
-      std::vector<uint64_t> dropPackets (matrixSize, 0);
       std::vector<uint64_t> oneWayDelayNs (matrixSize, 0);
       std::vector<uint64_t> oneWayDelayWeightBytes (matrixSize, 0);
       std::vector<uint64_t> rttNs (matrixSize, 0);
@@ -691,9 +681,7 @@ SatellitePathMonitor::WriteCsvMatrices (void)
         {
           uint64_t matrixIndex = it->first - firstKey;
           bytes[matrixIndex] = it->second.bytes;
-          packets[matrixIndex] = it->second.packets;
           dropBytes[matrixIndex] = it->second.dropBytes;
-          dropPackets[matrixIndex] = it->second.dropPackets;
           oneWayDelayWeightBytes[matrixIndex] = it->second.delayWeightBytes;
           if (it->second.delayWeightBytes > 0)
             {
@@ -723,11 +711,7 @@ SatellitePathMonitor::WriteCsvMatrices (void)
       std::ostringstream filename;
       filename << "t_" << std::setw (6) << std::setfill ('0') << t << ".csv";
       WriteMetricMatrix (bytesDir, filename.str (), bytes);
-      WriteMetricMatrix (packetsDir, filename.str (), packets);
       WriteMetricMatrix (dropBytesDir, filename.str (), dropBytes);
-      WriteMetricMatrix (dropPacketsDir, filename.str (), dropPackets);
-      WriteMetricMatrix (oneWayDelayNsDir, filename.str (), oneWayDelayNs);
-      WriteMetricMatrix (oneWayDelayWeightBytesDir, filename.str (), oneWayDelayWeightBytes);
       WriteMetricMatrix (rttNsDir, filename.str (), rttNs);
     }
 }

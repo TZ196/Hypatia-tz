@@ -149,6 +149,8 @@ def run_ns3(rd: Path, build: bool) -> None:
 
 def sum_matrix_dir(metric_dir: Path) -> int:
     total = 0
+    if not metric_dir.exists():
+        return total
     for path in sorted(metric_dir.glob("t_*.csv")):
         with open(path, "r", encoding="utf-8") as f:
             reader = csv.reader(f)
@@ -200,9 +202,7 @@ def summarize(rd: Path) -> None:
     ns3_config = read_ns3_config(rd / "config_ns3.properties")
     metadata = read_metadata(base_dir / "metadata.txt")
     drop_bytes = sum_matrix_dir(base_dir / "drop_bytes")
-    drop_packets = sum_matrix_dir(base_dir / "drop_packets")
     bytes_total = sum_matrix_dir(base_dir / "bytes")
-    packets_total = sum_matrix_dir(base_dir / "packets")
     udp_sent_packets = sum_udp_csv(rd / "logs_ns3" / "udp_bursts_outgoing.csv", 8)
     udp_received_packets = sum_udp_csv(rd / "logs_ns3" / "udp_bursts_incoming.csv", 8)
 
@@ -219,10 +219,8 @@ def summarize(rd: Path) -> None:
     print(f"udp_received_packets={udp_received_packets}")
     print(f"udp_unreceived_packets={udp_sent_packets - udp_received_packets}")
     print(f"path_bytes={bytes_total}")
-    print(f"path_packets={packets_total}")
     print(f"path_drop_bytes={drop_bytes}")
-    print(f"path_drop_packets={drop_packets}")
-    print(f"drop_accounting_worked={drop_bytes > 0 or drop_packets > 0}")
+    print(f"drop_accounting_worked={drop_bytes > 0}")
     for key in [
         "satellite_drop_events",
         "satellite_drop_events_without_path_tag",

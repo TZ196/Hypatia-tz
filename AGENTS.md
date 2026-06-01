@@ -94,12 +94,12 @@ printed drop audit counters:
 `satellite_drop_events_recorded`. ISL queue/transmit drops should be recorded
 with explicit next-hop attribution in
 `satellite_drop_events_recorded_with_next_hop`, which maps directly to
-`drop_bytes[from_sat][next_hop_sat]` and `drop_packets[from_sat][next_hop_sat]`.
+`drop_bytes[from_sat][next_hop_sat]`.
 If `satellite_drop_events*` is zero but `unfinished_path_events_at_finish` is
 positive, packets entered satellite paths but remained undelivered when the
 simulation stopped. The path monitor accounts these unfinished paths into
-`drop_bytes` and `drop_packets` at the last observed satellite, so the loss
-matrix covers both explicit device drops and under-completed open paths.
+`drop_bytes` at the last observed satellite, so the loss matrix covers both
+explicit device drops and under-completed open paths.
 
 The pipeline stages are:
 
@@ -143,11 +143,11 @@ Path-flow semantics:
   `A->C`, and `B->C`
 - diagonal `A->A` is only for single-satellite paths where traffic enters and
   exits through the same satellite
-- `one_way_delay_ns[A][B]` is the byte-weighted time between the packet receive
-  event at satellite `A` and the later receive event at satellite `B`
 - `rtt_ns[A][B]` is a satellite-path RTT estimate:
-  `one_way_delay_ns[A][B] + one_way_delay_ns[B][A]` within the same time bin
-  and is `0` if the reverse direction has no observation
+  internal one-way delay estimate `A->B` plus reverse estimate `B->A` within
+  the same time bin, and is `0` if the reverse direction has no observation
+- path monitor CSV output is intentionally limited to `bytes/`, `drop_bytes/`,
+  and `rtt_ns/`; packet and one-way-delay matrices are not written
 - `isl_utilization.csv` reports actual link utilization, not theoretical
   availability
 
