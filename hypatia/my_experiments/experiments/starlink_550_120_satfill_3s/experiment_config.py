@@ -30,21 +30,21 @@ SATELLITE_NETWORK = "starlink_550_120"
 DURATION_S = 5
 TIME_STEP_MS = 1000
 ISL_MODE = "isls_plus_grid"
-GS_SELECTION = "ground_stations_satellite_anchored_240"
+GS_SELECTION = "ground_stations_satellite_anchored_120"
 ROUTING_ALGORITHM = "algorithm_free_one_only_over_isls"
 
 NUM_SATELLITES = 120
 NUM_ORBITS = 10
 NUM_SATS_PER_ORBIT = 12
-NUM_GROUND_STATIONS = 240
+NUM_GROUND_STATIONS = 120
 GS_START_NODE_ID = NUM_SATELLITES
 ISL_SHIFT = 0
 
-# Each source access satellite sends one flow to every destination access
-# satellite exactly once, including itself.
+# Each source access satellite sends one flow to every other destination
+# access satellite exactly once.
 TRAFFIC_PAIR_MODE = "satellite_pair_stratified"
-TRAFFIC_SATELLITE_PAIR_SAMPLE_K = 120
-TRAFFIC_INCLUDE_SELF_SAT_DEST = True
+TRAFFIC_SATELLITE_PAIR_SAMPLE_K = 119
+TRAFFIC_INCLUDE_SELF_SAT_DEST = False
 TRAFFIC_ALLOW_REPEATED_DEST_SAT = False
 TRAFFIC_NEAR_SAT_DISTANCE_MAX = 2
 TRAFFIC_MID_SAT_DISTANCE_MAX = 4
