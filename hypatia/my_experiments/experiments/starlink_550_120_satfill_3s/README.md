@@ -34,3 +34,30 @@ python run_pipeline.py --threads 4 --build
 - `logs_ns3/sat_path_flow/rtt_ns/` contains satellite-path RTT matrices
 - `logs_ns3/sat_path_flow/bytes/` and `drop_bytes/` contain path traffic and
   unfinished/drop attribution matrices
+
+## Tensors
+
+After ns-3 finishes, build the three satellite path tensors:
+
+```bash
+python build_sat_path_tensors.py
+```
+
+This reads `runs/main/logs_ns3/sat_path_flow/{bytes,drop_bytes,rtt_ns}/t_*.csv`
+and writes:
+
+- `data/sat_path_bytes_tensor.npy`
+- `data/sat_path_drop_bytes_tensor.npy`
+- `data/sat_path_rtt_ns_tensor.npy`
+
+Each tensor has shape:
+
+```text
+(NUM_SATELLITES, NUM_SATELLITES, num_time_bins)
+```
+
+For this experiment, that is normally:
+
+```text
+(120, 120, 5)
+```
