@@ -171,16 +171,53 @@ def read_metadata(path: Path) -> dict[str, str]:
     return values
 
 
+def read_ns3_config(path: Path) -> dict[str, str]:
+    values = {}
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            values[key] = value.strip('"')
+    return values
+
+
+def sum_udp_csv(path: Path, packets_column: int) -> int:
+    if not path.exists():
+        return 0
+    total = 0
+    with open(path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if len(row) > packets_column:
+                total += int(row[packets_column])
+    return total
+
+
 def summarize(rd: Path) -> None:
     base_dir = rd / "logs_ns3" / "sat_path_flow"
+    ns3_config = read_ns3_config(rd / "config_ns3.properties")
     metadata = read_metadata(base_dir / "metadata.txt")
     drop_bytes = sum_matrix_dir(base_dir / "drop_bytes")
     drop_packets = sum_matrix_dir(base_dir / "drop_packets")
     bytes_total = sum_matrix_dir(base_dir / "bytes")
     packets_total = sum_matrix_dir(base_dir / "packets")
+    udp_sent_packets = sum_udp_csv(rd / "logs_ns3" / "udp_bursts_outgoing.csv", 8)
+    udp_received_packets = sum_udp_csv(rd / "logs_ns3" / "udp_bursts_incoming.csv", 8)
 
     print("=== UDP drop diagnostic summary ===")
     print(f"run_dir={rd}")
+    for key in [
+        "isl_data_rate_megabit_per_s",
+        "gsl_data_rate_megabit_per_s",
+        "isl_max_queue_size_pkts",
+        "gsl_max_queue_size_pkts",
+    ]:
+        print(f"{key}={ns3_config.get(key, 'MISSING')}")
+    print(f"udp_sent_packets={udp_sent_packets}")
+    print(f"udp_received_packets={udp_received_packets}")
+    print(f"udp_unreceived_packets={udp_sent_packets - udp_received_packets}")
     print(f"path_bytes={bytes_total}")
     print(f"path_packets={packets_total}")
     print(f"path_drop_bytes={drop_bytes}")
