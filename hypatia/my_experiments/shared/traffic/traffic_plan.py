@@ -170,6 +170,12 @@ def _stratified_destination_satellites(config, src_sat: int, rng: random.Random)
             f"TRAFFIC_SATELLITE_PAIR_SAMPLE_K must be in [1, {max_unique}] "
             "unless TRAFFIC_ALLOW_REPEATED_DEST_SAT=True"
         )
+    if sample_k == max_unique and not allow_repeats:
+        return [
+            sat_id
+            for sat_id in range(config.NUM_SATELLITES)
+            if include_self or sat_id != src_sat
+        ]
 
     near_threshold = int(getattr(config, "TRAFFIC_NEAR_SAT_DISTANCE_MAX", 2))
     mid_threshold = int(getattr(config, "TRAFFIC_MID_SAT_DISTANCE_MAX", 5))

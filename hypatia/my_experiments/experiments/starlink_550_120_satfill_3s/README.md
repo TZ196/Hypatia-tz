@@ -13,7 +13,6 @@ Current configuration:
 - `120 * 119 = 14280` directed TCP flows
 - per source satellite:
   every other destination satellite is covered exactly once, excluding itself
-  through mixed near/mid/far/cross-plane strata
 - each flow is exactly 5 MB
 - `TRAFFIC_MIN_DISTANCE_KM = 0`; satellite OD coverage is enforced directly
   by the anchored source/destination satellite pair selection
