@@ -44,7 +44,7 @@ python build_sat_path_tensors.py
 ```
 
 This reads `runs/main/logs_ns3/sat_path_flow/{bytes,drop_bytes,rtt_ns}/t_*.csv`
-and writes:
+directly. It does not import `shared/tensor_tools.py`. It writes:
 
 - `data/sat_path_bytes_tensor.npy`
 - `data/sat_path_drop_bytes_tensor.npy`
