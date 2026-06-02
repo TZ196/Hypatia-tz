@@ -27,7 +27,13 @@ def read_metadata(path: Path) -> dict[str, str]:
     return values
 
 
-def build_metric_tensor(base_dir: Path, metric: str, output_name: str, expected_bins: int | None) -> Path:
+def build_metric_tensor(
+    base_dir: Path,
+    metric: str,
+    output_name: str,
+    expected_bins: int | None,
+    scale: float = 1.0,
+) -> Path:
     metric_dir = base_dir / metric
     files = sorted(metric_dir.glob("t_*.csv"), key=time_matrix_index)
     if not files:
@@ -41,6 +47,8 @@ def build_metric_tensor(base_dir: Path, metric: str, output_name: str, expected_
         matrix = np.loadtxt(path, delimiter=",", dtype=np.uint64)
         if matrix.shape != expected_shape:
             raise ValueError(f"Unexpected matrix shape in {path}: {matrix.shape}; expected {expected_shape}")
+        if scale != 1.0:
+            matrix = matrix.astype(np.float64) * scale
         matrices.append(matrix)
 
     tensor = np.stack(matrices, axis=2)
@@ -62,13 +70,13 @@ def build_sat_path_tensors() -> list[Path]:
     expected_bins = int(metadata["num_time_bins"]) if "num_time_bins" in metadata else None
 
     metric_specs = [
-        ("bytes", "sat_path_bytes_tensor.npy"),
-        ("drop_bytes", "sat_path_drop_bytes_tensor.npy"),
-        ("rtt_ns", "sat_path_rtt_ns_tensor.npy"),
+        ("bytes", "sat_path_bytes_tensor.npy", 1.0),
+        ("drop_bytes", "sat_path_drop_bytes_tensor.npy", 1.0),
+        ("rtt_ns", "sat_path_rtt_ms_tensor.npy", 1.0 / 1_000_000.0),
     ]
     return [
-        build_metric_tensor(base_dir, metric, output_name, expected_bins)
-        for metric, output_name in metric_specs
+        build_metric_tensor(base_dir, metric, output_name, expected_bins, scale)
+        for metric, output_name, scale in metric_specs
     ]
 
 
