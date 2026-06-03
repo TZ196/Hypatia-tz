@@ -560,24 +560,33 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
 
     merge_same_pair = bool(getattr(config, "TRAFFIC_MIN_COVER_MERGE_SAME_PAIR", True))
     base_flow_size = int(getattr(config, "TRAFFIC_FLOW_SIZE_BYTES", 1_000_000))
+    max_total_flows = getattr(config, "TRAFFIC_MIN_COVER_MAX_TOTAL_FLOWS", None)
     flow_counts = defaultdict(int)
     flow_start_times = {}
 
     if merge_same_pair:
         for time_ns, selected_indices in zip(time_slices, per_slice_selected):
             for idx in selected_indices:
+                if max_total_flows is not None and len(flow_counts) >= int(max_total_flows):
+                    break
                 candidate = candidates[idx]
                 key = (candidate["src_local"], candidate["dst_local"])
                 flow_counts[key] += 1
                 if key not in flow_start_times or time_ns < flow_start_times[key]:
                     flow_start_times[key] = time_ns
+            if max_total_flows is not None and len(flow_counts) >= int(max_total_flows):
+                break
     else:
         for time_ns, selected_indices in zip(time_slices, per_slice_selected):
             for idx in selected_indices:
+                if max_total_flows is not None and len(flow_counts) >= int(max_total_flows):
+                    break
                 candidate = candidates[idx]
                 key = (candidate["src_local"], candidate["dst_local"], time_ns)
                 flow_counts[key] = 1
                 flow_start_times[key] = time_ns
+            if max_total_flows is not None and len(flow_counts) >= int(max_total_flows):
+                break
 
     flows = []
     matrix = [[0 for _ in stations] for _ in stations]
@@ -608,6 +617,7 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
         "uncovered_pairs_per_slice": per_slice_uncovered,
         "candidate_flows": len(candidates),
         "merge_same_pair": merge_same_pair,
+        "max_total_flows": max_total_flows,
     }
     return flows, matrix
 
@@ -723,6 +733,7 @@ def describe_traffic_plan(config, flows: list[TrafficFlow]) -> dict[str, str]:
             "min_cover_time_slices": str(details.get("time_slices", "")),
             "min_cover_candidate_flows": str(details.get("candidate_flows", "")),
             "min_cover_merge_same_pair": str(details.get("merge_same_pair", "")),
+            "min_cover_max_total_flows": str(details.get("max_total_flows", "")),
             "min_cover_uncovered_pairs": ",".join(str(v) for v in details.get("uncovered_pairs_per_slice", [])),
         })
     return summary
