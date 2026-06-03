@@ -590,11 +590,12 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
 
 
 def write_schedule(path: Path, flows: list[TrafficFlow]) -> None:
+    sorted_flows = sorted(flows, key=lambda flow: (flow.start_time_ns, flow.flow_id))
     try:
         import networkload
     except ImportError:
         with open(path, "w", encoding="utf-8") as f:
-            for flow in flows:
+            for flow in sorted_flows:
                 f.write(
                     f"{flow.flow_id},{flow.src_node_id},{flow.dst_node_id},"
                     f"{flow.size_byte},{flow.start_time_ns},,\n"
@@ -603,10 +604,10 @@ def write_schedule(path: Path, flows: list[TrafficFlow]) -> None:
 
     networkload.write_schedule(
         str(path),
-        len(flows),
-        [(flow.src_node_id, flow.dst_node_id) for flow in flows],
-        [flow.size_byte for flow in flows],
-        [flow.start_time_ns for flow in flows],
+        len(sorted_flows),
+        [(flow.src_node_id, flow.dst_node_id) for flow in sorted_flows],
+        [flow.size_byte for flow in sorted_flows],
+        [flow.start_time_ns for flow in sorted_flows],
     )
 
 
