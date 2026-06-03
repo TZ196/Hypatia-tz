@@ -8,6 +8,9 @@ import numpy as np
 import experiment_config as config
 
 
+BYTES_PER_MB = 1_000_000.0
+
+
 def time_matrix_index(path: Path) -> int:
     match = re.fullmatch(r"t_(\d+)\.csv", path.name)
     if match is None:
@@ -70,8 +73,8 @@ def build_sat_path_tensors() -> list[Path]:
     expected_bins = int(metadata["num_time_bins"]) if "num_time_bins" in metadata else None
 
     metric_specs = [
-        ("bytes", "sat_path_bytes_tensor.npy", 1.0),
-        ("drop_bytes", "sat_path_drop_bytes_tensor.npy", 1.0),
+        ("bytes", "sat_path_bytes_mb_tensor.npy", 1.0 / BYTES_PER_MB),
+        ("drop_bytes", "sat_path_drop_mb_tensor.npy", 1.0 / BYTES_PER_MB),
         ("rtt_ns", "sat_path_rtt_ms_tensor.npy", 1.0 / 1_000_000.0),
     ]
     return [

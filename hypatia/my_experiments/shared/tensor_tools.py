@@ -7,6 +7,7 @@ import numpy as np
 
 
 NS_PER_S = 1_000_000_000
+BYTES_PER_MB = 1_000_000.0
 
 
 def _logs_dir(config) -> Path:
@@ -57,8 +58,11 @@ def _num_slices(config, time_slice_s):
     return num_slices
 
 
-def build_traffic_tensor(config, time_slice_s=5, output_name="traffic_tensor.npy"):
-    """Build a ground-station traffic tensor from tcp_flow_*_progress.csv."""
+def build_traffic_tensor(config, time_slice_s=5, output_name="traffic_mb_tensor.npy"):
+    """Build a ground-station traffic tensor from tcp_flow_*_progress.csv.
+
+    Traffic values are stored in MB, using 1 MB = 1,000,000 bytes.
+    """
 
     num_slices = _num_slices(config, time_slice_s)
     flow_map = _read_flow_map(config)
@@ -93,7 +97,7 @@ def build_traffic_tensor(config, time_slice_s=5, output_name="traffic_tensor.npy
                     if delta > 0:
                         slice_idx = prev_time // (NS_PER_S * time_slice_s)
                         if 0 <= slice_idx < num_slices:
-                            tensor[src_idx, dst_idx, slice_idx] += delta
+                            tensor[src_idx, dst_idx, slice_idx] += delta / BYTES_PER_MB
 
                 prev_time = time_ns
                 prev_bytes = bytes_cum
@@ -104,7 +108,7 @@ def build_traffic_tensor(config, time_slice_s=5, output_name="traffic_tensor.npy
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / output_name
     np.save(out_path, tensor)
-    print(f"Saved traffic tensor {tensor.shape} to {out_path}")
+    print(f"Saved traffic MB tensor {tensor.shape} to {out_path}")
     print(f"Processed {processed} flows, skipped {skipped}")
     return out_path
 
@@ -268,16 +272,16 @@ def build_sat_path_tensors(config):
     expected_bins = int(metadata["num_time_bins"]) if "num_time_bins" in metadata else None
 
     metric_specs = [
-        ("bytes", "sat_path_bytes_tensor.npy"),
-        ("drop_bytes", "sat_path_drop_bytes_tensor.npy"),
-        ("rtt_ns", "sat_path_rtt_ns_tensor.npy"),
+        ("bytes", "sat_path_bytes_mb_tensor.npy", 1.0 / BYTES_PER_MB),
+        ("drop_bytes", "sat_path_drop_mb_tensor.npy", 1.0 / BYTES_PER_MB),
+        ("rtt_ns", "sat_path_rtt_ms_tensor.npy", 1.0 / 1_000_000.0),
     ]
 
     out_dir = _data_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     outputs = []
-    for metric, output_name in metric_specs:
+    for metric, output_name, scale in metric_specs:
         metric_dir = base_dir / metric
         files = sorted(metric_dir.glob("t_*.csv"), key=_time_matrix_index)
         if not files:
@@ -295,6 +299,8 @@ def build_sat_path_tensors(config):
                     f"Unexpected matrix shape in {path}: {matrix.shape}; "
                     f"expected {(config.NUM_SATELLITES, config.NUM_SATELLITES)}"
                 )
+            if scale != 1.0:
+                matrix = matrix.astype(np.float64) * scale
             matrices.append(matrix)
 
         tensor = np.stack(matrices, axis=2)
@@ -306,7 +312,7 @@ def build_sat_path_tensors(config):
     return outputs
 
 
-def build_sat_path_flow_from_routes(config, time_slice_s=1, output_name="sat_path_bytes_from_routes_tensor.npy"):
+def build_sat_path_flow_from_routes(config, time_slice_s=1, output_name="sat_path_mb_from_routes_tensor.npy"):
     """Build satellite path-flow matrices from TCP progress and satgenpy forwarding state.
 
     For each TCP flow byte delta, this uses the forwarding state active at the
@@ -432,13 +438,14 @@ def build_sat_path_flow_from_routes(config, time_slice_s=1, output_name="sat_pat
     out_dir = _data_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / output_name
-    np.save(out_path, tensor)
+    tensor_mb = tensor.astype(np.float64) / BYTES_PER_MB
+    np.save(out_path, tensor_mb)
 
-    csv_dir = _logs_dir(config) / "sat_path_flow_from_routes" / "bytes"
+    csv_dir = _logs_dir(config) / "sat_path_flow_from_routes" / "mb"
     csv_dir.mkdir(parents=True, exist_ok=True)
     for slice_idx in range(num_slices):
         csv_path = csv_dir / f"t_{slice_idx:06d}.csv"
-        np.savetxt(csv_path, tensor[:, :, slice_idx], delimiter=",", fmt="%d")
+        np.savetxt(csv_path, tensor_mb[:, :, slice_idx], delimiter=",", fmt="%.6f")
 
     metadata_path = csv_dir.parent / "metadata.txt"
     with open(metadata_path, "w", encoding="utf-8") as f:
@@ -446,6 +453,7 @@ def build_sat_path_flow_from_routes(config, time_slice_s=1, output_name="sat_pat
         f.write(f"num_time_bins={num_slices}\n")
         f.write(f"interval_ns={slice_ns}\n")
         f.write("layout=matrix[from_sat][to_sat]\n")
+        f.write("unit=MB\n")
         f.write("source=tcp_progress_plus_fstate_routes\n")
         f.write("semantics=flow_delta_expanded_to_all_earlier_later_satellite_pairs\n")
         f.write(f"processed_flows={processed}\n")
@@ -463,7 +471,7 @@ def build_sat_path_flow_from_routes(config, time_slice_s=1, output_name="sat_pat
         f.write(f"path_length_histogram={_format_histogram(path_length_histogram)}\n")
         f.write(f"available_fstate_files={len(available_fstates)}\n")
 
-    print(f"Saved route-derived satellite path tensor {tensor.shape} to {out_path}")
+    print(f"Saved route-derived satellite path MB tensor {tensor_mb.shape} to {out_path}")
     print(f"Saved per-slice CSV matrices to {csv_dir}")
     print(f"Metadata: {metadata_path}")
     print(f"Processed {processed} flows, skipped {skipped}")
