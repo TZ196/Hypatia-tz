@@ -353,7 +353,12 @@ def run_ns3(config, build=False):
 
 def run_pipeline(config, constellation_helper, threads=4, build=False):
     define_ground_stations(config)
-    design_traffic(config)
-    generate_satellite_network_state(config, constellation_helper, threads)
+    mode = getattr(config, "TRAFFIC_PAIR_MODE", "satellite_pair_stratified")
+    if mode == "satellite_pair_min_cover":
+        generate_satellite_network_state(config, constellation_helper, threads)
+        design_traffic(config)
+    else:
+        design_traffic(config)
+        generate_satellite_network_state(config, constellation_helper, threads)
     generate_ns3_run(config)
     run_ns3(config, build=build)

@@ -1,0 +1,18 @@
+Traffic design
+ground_stations=120
+ground_station_node_ids=120..239
+seed=123456789
+pair_mode=satellite_pair_stratified
+flow_count=14280
+satellite_pair_sample_k=119
+include_self_sat_destination=False
+min_distance_km=0
+total_size_byte=142800000000
+min_flow_size_byte=10000000
+avg_flow_size_byte=10000000
+max_flow_size_byte=10000000
+all_flows_start_time_ns=0
+schedule=schedule.csv
+traffic_matrix=traffic_matrix_bytes.csv
+station_activity=station_activity.csv
+traffic_flow_details=traffic_flow_details.csv

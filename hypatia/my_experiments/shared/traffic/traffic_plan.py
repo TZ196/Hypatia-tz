@@ -1,15 +1,14 @@
-"""Traffic plan for the Starlink-120 satellite-fill experiment.
+"""Traffic plan for satellite-anchored experiments.
 
-The only supported demand model is satellite-pair stratified traffic over
-satellite-anchored ground stations.  Each source access satellite selects a
-configured number of destination access satellites; for the current experiment
-that means 120 x 120 flows, including self-satellite logical pairs that are
-mapped to two different ground stations anchored to the same satellite.
+Supported demand models:
+- satellite_pair_stratified: stratified satellite-pair sampling per source
+- satellite_pair_min_cover: greedy per-time-slice cover of all (A,B) satellite pairs
 """
 
 import csv
 import math
 import random
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -60,32 +59,37 @@ def generate_traffic_plan(config) -> tuple[list[TrafficFlow], list[list[int]]]:
         raise ValueError(f"Expected {config.NUM_GROUND_STATIONS} ground stations, got {len(stations)}")
 
     mode = getattr(config, "TRAFFIC_PAIR_MODE", "satellite_pair_stratified")
-    if mode != "satellite_pair_stratified":
-        raise ValueError("Only TRAFFIC_PAIR_MODE='satellite_pair_stratified' is supported")
+    if mode == "satellite_pair_stratified":
+        rng = random.Random(getattr(config, "TRAFFIC_SEED", 123456789))
+        pairs = _select_satellite_pair_stratified_pairs(config, stations, rng)
+        sizes = _allocate_flow_sizes(config, pairs, stations, rng)
 
-    rng = random.Random(getattr(config, "TRAFFIC_SEED", 123456789))
-    pairs = _select_satellite_pair_stratified_pairs(config, stations, rng)
-    sizes = _allocate_flow_sizes(config, pairs, stations, rng)
+        matrix = [[0 for _ in stations] for _ in stations]
+        flows = []
+        start_time_ns = getattr(config, "TRAFFIC_START_TIME_NS", 0)
 
-    matrix = [[0 for _ in stations] for _ in stations]
-    flows = []
-    start_time_ns = getattr(config, "TRAFFIC_START_TIME_NS", 0)
-
-    for flow_id, ((src_local, dst_local), size_byte) in enumerate(zip(pairs, sizes)):
-        matrix[src_local][dst_local] += size_byte
-        flows.append(
-            TrafficFlow(
-                flow_id=flow_id,
-                src_node_id=config.GS_START_NODE_ID + src_local,
-                dst_node_id=config.GS_START_NODE_ID + dst_local,
-                size_byte=size_byte,
-                start_time_ns=start_time_ns,
-                src_local_id=src_local,
-                dst_local_id=dst_local,
+        for flow_id, ((src_local, dst_local), size_byte) in enumerate(zip(pairs, sizes)):
+            matrix[src_local][dst_local] += size_byte
+            flows.append(
+                TrafficFlow(
+                    flow_id=flow_id,
+                    src_node_id=config.GS_START_NODE_ID + src_local,
+                    dst_node_id=config.GS_START_NODE_ID + dst_local,
+                    size_byte=size_byte,
+                    start_time_ns=start_time_ns,
+                    src_local_id=src_local,
+                    dst_local_id=dst_local,
+                )
             )
-        )
 
-    return flows, matrix
+        return flows, matrix
+
+    if mode == "satellite_pair_min_cover":
+        return _generate_min_cover_plan(config, stations)
+
+    raise ValueError(
+        "Only TRAFFIC_PAIR_MODE in {'satellite_pair_stratified', 'satellite_pair_min_cover'} is supported"
+    )
 
 
 def station_activity_rows(config) -> list[dict[str, str]]:
@@ -322,6 +326,269 @@ def _great_circle_distance_km(lat1: float, lon1: float, lat2: float, lon2: float
     return 2.0 * earth_radius_km * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
 
 
+def _available_fstate_times(dynamic_state_dir: Path) -> list[int]:
+    times = []
+    for path in dynamic_state_dir.glob("fstate_*.txt"):
+        stem = path.stem
+        try:
+            times.append(int(stem.split("_", 1)[1]))
+        except (IndexError, ValueError):
+            continue
+    return sorted(times)
+
+
+def _read_fstate(path: Path) -> dict[tuple[int, int], int]:
+    forwarding = {}
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            current, dest, next_hop, _own_if, _next_if = line.split(",", 4)
+            forwarding[(int(current), int(dest))] = int(next_hop)
+    return forwarding
+
+
+def _read_cumulative_fstate(
+    dynamic_state_dir: Path,
+    available_fstates: list[int],
+    target_time: int,
+    cache: dict[int, dict[tuple[int, int], int]],
+) -> dict[tuple[int, int], int]:
+    if target_time in cache:
+        return cache[target_time]
+
+    prior_cached_times = [time for time in cache if time <= target_time]
+    if prior_cached_times:
+        start_time = max(prior_cached_times)
+        forwarding = dict(cache[start_time])
+        times_to_apply = [time for time in available_fstates if start_time < time <= target_time]
+    else:
+        forwarding = {}
+        times_to_apply = [time for time in available_fstates if time <= target_time]
+
+    for time in times_to_apply:
+        updates = _read_fstate(dynamic_state_dir / f"fstate_{time}.txt")
+        forwarding.update(updates)
+        cache[time] = dict(forwarding)
+
+    if target_time not in cache:
+        cache[target_time] = dict(forwarding)
+    return cache[target_time]
+
+
+def _satellite_path_for_flow(
+    fstate: dict[tuple[int, int], int],
+    src_node: int,
+    dst_node: int,
+    num_satellites: int,
+) -> dict[str, object]:
+    current = src_node
+    path = []
+    visited = set()
+    max_hops = max(4 * num_satellites, 16)
+
+    for _ in range(max_hops):
+        if current == dst_node:
+            return {"status": "ok", "path": path}
+        state_key = (current, dst_node)
+        if state_key not in fstate:
+            return {"status": "missing_route", "path": path}
+
+        next_node = fstate[state_key]
+        if next_node < 0:
+            return {"status": "invalid_next_hop", "path": path}
+        if next_node < num_satellites and next_node not in path:
+            path.append(next_node)
+
+        loop_key = (current, next_node)
+        if loop_key in visited or next_node == current:
+            return {"status": "loop", "path": path}
+        visited.add(loop_key)
+        current = next_node
+
+    return {"status": "max_hops_exceeded", "path": path}
+
+
+def _path_pair_indices(path: list[int], num_satellites: int) -> list[int]:
+    indices = []
+    for to_pos in range(1, len(path)):
+        to_sat = path[to_pos]
+        for from_pos in range(to_pos):
+            from_sat = path[from_pos]
+            if from_sat == to_sat:
+                continue
+            indices.append(from_sat * num_satellites + to_sat)
+    return indices
+
+
+def _select_station_per_satellite(stations_by_satellite: dict[int, list[GroundStation]]) -> dict[int, GroundStation]:
+    selected = {}
+    for sat_id, stations in stations_by_satellite.items():
+        selected[sat_id] = sorted(stations, key=lambda station: station.local_id)[0]
+    return selected
+
+
+def _min_cover_time_slices(config, available_fstates: list[int]) -> list[int]:
+    end_ns = int(config.DURATION_S) * 1_000_000_000
+    return [time for time in available_fstates if 0 <= time <= end_ns]
+
+
+def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[list[TrafficFlow], list[list[int]]]:
+    dynamic_state_dir = config.generated_satellite_network_dir() / config.dynamic_state_dir_name()
+    if not dynamic_state_dir.exists():
+        raise FileNotFoundError(f"Dynamic state directory not found: {dynamic_state_dir}")
+
+    available_fstates = _available_fstate_times(dynamic_state_dir)
+    if not available_fstates:
+        raise FileNotFoundError(f"No fstate_*.txt files found in {dynamic_state_dir}")
+
+    time_slices = _min_cover_time_slices(config, available_fstates)
+    if not time_slices:
+        raise ValueError("No forwarding-state snapshots available for the configured duration")
+
+    stations_by_satellite = _stations_by_anchor_satellite(stations)
+    missing = [sat_id for sat_id in range(config.NUM_SATELLITES) if sat_id not in stations_by_satellite]
+    if missing:
+        raise ValueError(f"Missing anchored ground stations for satellites: {missing[:20]}")
+
+    sat_to_station = _select_station_per_satellite(stations_by_satellite)
+
+    candidates = []
+    for src_sat in range(config.NUM_SATELLITES):
+        for dst_sat in range(config.NUM_SATELLITES):
+            if src_sat == dst_sat:
+                continue
+            src_station = sat_to_station[src_sat]
+            dst_station = sat_to_station[dst_sat]
+            candidates.append({
+                "src_sat": src_sat,
+                "dst_sat": dst_sat,
+                "src_local": src_station.local_id,
+                "dst_local": dst_station.local_id,
+                "src_node": config.GS_START_NODE_ID + src_station.local_id,
+                "dst_node": config.GS_START_NODE_ID + dst_station.local_id,
+            })
+
+    max_candidates = getattr(config, "TRAFFIC_MIN_COVER_MAX_CANDIDATES", None)
+    if max_candidates is not None and max_candidates > 0 and max_candidates < len(candidates):
+        rng = random.Random(getattr(config, "TRAFFIC_SEED", 123456789))
+        candidates = rng.sample(candidates, max_candidates)
+
+    per_slice_selected = []
+    per_slice_uncovered = []
+    fstate_cache = {}
+    num_satellites = config.NUM_SATELLITES
+    max_flows_per_slice = getattr(config, "TRAFFIC_MIN_COVER_MAX_FLOWS_PER_SLICE", None)
+
+    for time_ns in time_slices:
+        fstate = _read_cumulative_fstate(dynamic_state_dir, available_fstates, time_ns, fstate_cache)
+
+        uncovered = [True] * (num_satellites * num_satellites)
+        for sat_id in range(num_satellites):
+            uncovered[sat_id * num_satellites + sat_id] = False
+        uncovered_count = num_satellites * (num_satellites - 1)
+
+        coverage_lists = []
+        for candidate in candidates:
+            route = _satellite_path_for_flow(
+                fstate,
+                candidate["src_node"],
+                candidate["dst_node"],
+                num_satellites,
+            )
+            if route["status"] == "ok" and len(route["path"]) >= 2:
+                coverage_lists.append(_path_pair_indices(route["path"], num_satellites))
+            else:
+                coverage_lists.append([])
+
+        selected_indices = []
+        remaining = uncovered_count
+        while remaining > 0:
+            best_idx = None
+            best_new = 0
+            for idx, coverage in enumerate(coverage_lists):
+                if not coverage:
+                    continue
+                new_count = 0
+                for pair_idx in coverage:
+                    if uncovered[pair_idx]:
+                        new_count += 1
+                if new_count > best_new:
+                    best_new = new_count
+                    best_idx = idx
+
+            if best_idx is None or best_new == 0:
+                break
+
+            selected_indices.append(best_idx)
+            for pair_idx in coverage_lists[best_idx]:
+                if uncovered[pair_idx]:
+                    uncovered[pair_idx] = False
+                    remaining -= 1
+
+            coverage_lists[best_idx] = []
+
+            if max_flows_per_slice is not None and len(selected_indices) >= max_flows_per_slice:
+                break
+
+        per_slice_selected.append(selected_indices)
+        per_slice_uncovered.append(remaining)
+
+    merge_same_pair = bool(getattr(config, "TRAFFIC_MIN_COVER_MERGE_SAME_PAIR", True))
+    base_flow_size = int(getattr(config, "TRAFFIC_FLOW_SIZE_BYTES", 1_000_000))
+    flow_counts = defaultdict(int)
+    flow_start_times = {}
+
+    if merge_same_pair:
+        for time_ns, selected_indices in zip(time_slices, per_slice_selected):
+            for idx in selected_indices:
+                candidate = candidates[idx]
+                key = (candidate["src_local"], candidate["dst_local"])
+                flow_counts[key] += 1
+                if key not in flow_start_times or time_ns < flow_start_times[key]:
+                    flow_start_times[key] = time_ns
+    else:
+        for time_ns, selected_indices in zip(time_slices, per_slice_selected):
+            for idx in selected_indices:
+                candidate = candidates[idx]
+                key = (candidate["src_local"], candidate["dst_local"], time_ns)
+                flow_counts[key] = 1
+                flow_start_times[key] = time_ns
+
+    flows = []
+    matrix = [[0 for _ in stations] for _ in stations]
+    flow_id = 0
+    for key in sorted(flow_counts):
+        if merge_same_pair:
+            src_local, dst_local = key
+        else:
+            src_local, dst_local, _time_ns = key
+        start_time_ns = flow_start_times[key]
+        size_byte = base_flow_size * flow_counts[key]
+        matrix[src_local][dst_local] += size_byte
+        flows.append(
+            TrafficFlow(
+                flow_id=flow_id,
+                src_node_id=config.GS_START_NODE_ID + src_local,
+                dst_node_id=config.GS_START_NODE_ID + dst_local,
+                size_byte=size_byte,
+                start_time_ns=start_time_ns,
+                src_local_id=src_local,
+                dst_local_id=dst_local,
+            )
+        )
+        flow_id += 1
+
+    config._traffic_min_cover_summary = {
+        "time_slices": len(time_slices),
+        "uncovered_pairs_per_slice": per_slice_uncovered,
+        "candidate_flows": len(candidates),
+        "merge_same_pair": merge_same_pair,
+    }
+    return flows, matrix
+
+
 def write_schedule(path: Path, flows: list[TrafficFlow]) -> None:
     try:
         import networkload
@@ -410,15 +677,28 @@ def write_flow_pair_details_csv(path: Path, config, flows: list[TrafficFlow]) ->
 def describe_traffic_plan(config, flows: list[TrafficFlow]) -> dict[str, str]:
     total_bytes = sum(flow.size_byte for flow in flows)
     avg_bytes = total_bytes / len(flows) if flows else 0
-    return {
-        "pair_mode": "satellite_pair_stratified",
+    mode = getattr(config, "TRAFFIC_PAIR_MODE", "satellite_pair_stratified")
+    summary = {
+        "pair_mode": mode,
         "flow_count": str(len(flows)),
-        "satellite_pair_sample_k": str(config.TRAFFIC_SATELLITE_PAIR_SAMPLE_K),
-        "include_self_sat_destination": str(bool(getattr(config, "TRAFFIC_INCLUDE_SELF_SAT_DEST", False))),
-        "min_distance_km": str(getattr(config, "TRAFFIC_MIN_DISTANCE_KM", "")),
         "total_size_byte": str(total_bytes),
         "min_flow_size_byte": str(min((flow.size_byte for flow in flows), default=0)),
         "avg_flow_size_byte": str(math.floor(avg_bytes)),
         "max_flow_size_byte": str(max((flow.size_byte for flow in flows), default=0)),
-        "all_flows_start_time_ns": str(getattr(config, "TRAFFIC_START_TIME_NS", 0)),
     }
+    if mode == "satellite_pair_stratified":
+        summary.update({
+            "satellite_pair_sample_k": str(config.TRAFFIC_SATELLITE_PAIR_SAMPLE_K),
+            "include_self_sat_destination": str(bool(getattr(config, "TRAFFIC_INCLUDE_SELF_SAT_DEST", False))),
+            "min_distance_km": str(getattr(config, "TRAFFIC_MIN_DISTANCE_KM", "")),
+            "all_flows_start_time_ns": str(getattr(config, "TRAFFIC_START_TIME_NS", 0)),
+        })
+    elif mode == "satellite_pair_min_cover":
+        details = getattr(config, "_traffic_min_cover_summary", {})
+        summary.update({
+            "min_cover_time_slices": str(details.get("time_slices", "")),
+            "min_cover_candidate_flows": str(details.get("candidate_flows", "")),
+            "min_cover_merge_same_pair": str(details.get("merge_same_pair", "")),
+            "min_cover_uncovered_pairs": ",".join(str(v) for v in details.get("uncovered_pairs_per_slice", [])),
+        })
+    return summary

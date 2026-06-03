@@ -1,0 +1,2043 @@
+nohup: ignoring input
+Defined 120 satellite-anchored ground stations
+Ground station file: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/input/ground_stations.basic.txt
+Ground station manifest: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/input/ground_stations_manifest.csv
+Generated 14280 TCP flows
+Total traffic: 142800000000 bytes
+Schedule: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/input/schedule.csv
+Traffic matrix: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/input/traffic_matrix_bytes.csv
+Traffic design summary: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/input/traffic_design.txt
+Generating ground stations...
+Generating TLEs...
+Generating ISLs...
+Using ISL shift: 0
+Generating description...
+Generating GSL interfaces info..
+Generating forwarding state...
+Thread 0 does interval [0.00 ms, 15000.00 ms]
+Thread 1 does interval [15000.00 ms, 30000.00 ms]
+Thread 2 does interval [30000.00 ms, 45000.00 ms]
+Thread 3 does interval [45000.00 ms, 60000.00 ms]
+FORWARDING STATE AT T = 0ns (= 0.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 0 ns
+  > Absolute time.......... 2000-01-01 00:00:00.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+FORWARDING STATE AT T = 15000000000ns (= 15.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 15000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:15.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+FORWARDING STATE AT T = 30000000000ns (= 30.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 30000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:30.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+FORWARDING STATE AT T = 45000000000ns (= 45.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 45000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:45.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_45000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_30000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_15000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_30000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_0.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_15000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_0.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_45000000000.txt
+
+FORWARDING STATE AT T = 31000000000ns (= 31.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 31000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:31.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 16000000000ns (= 16.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 16000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:16.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 46000000000ns (= 46.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 46000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:46.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 1000000000ns (= 1.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 1000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:01.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_31000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_31000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_16000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+
+FORWARDING STATE AT T = 32000000000ns (= 32.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 32000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:32.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_1000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_46000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_16000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_1000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_46000000000.txt
+
+
+FORWARDING STATE AT T = 17000000000ns (= 17.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 17000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:17.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+FORWARDING STATE AT T = 2000000000ns (= 2.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 2000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:02.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 47000000000ns (= 47.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 47000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:47.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_32000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_2000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_17000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_32000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_47000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_17000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_2000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_47000000000.txt
+
+FORWARDING STATE AT T = 33000000000ns (= 33.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 33000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:33.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+
+FORWARDING STATE AT T = 18000000000ns (= 18.0 seconds)
+
+BASIC INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 18000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:18.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 3000000000ns (= 3.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 3000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:03.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 48000000000ns (= 48.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 48000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:48.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_33000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_48000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_18000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_33000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_48000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_3000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_18000000000.txt
+                                            EV78Чки1      Р
+&  Ђ   > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_3000000000.txt
+
+FORWARDING STATE AT T = 19000000000ns (= 19.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 19000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:19.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+
+FORWARDING STATE AT T = 49000000000ns (= 49.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 49000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:49.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 34000000000ns (= 34.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 34000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:34.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 4000000000ns (= 4.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 4000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:04.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_49000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_19000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_49000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_19000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_34000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_34000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_4000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_4000000000.txt
+
+FORWARDING STATE AT T = 50000000000ns (= 50.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 50000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:50.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 20000000000ns (= 20.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 20000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:20.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 35000000000ns (= 35.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 35000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:35.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 5000000000ns (= 5.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 5000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:05.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_50000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_50000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_20000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_35000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Calculating Floyd-Warshall for graph without ground-station relays
+
+FORWARDING STATE AT T = 51000000000ns (= 51.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 51000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:51.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_20000000000.txt
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_35000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_5000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_5000000000.txt
+
+FORWARDING STATE AT T = 21000000000ns (= 21.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 21000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:21.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+
+FORWARDING STATE AT T = 36000000000ns (= 36.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 36000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:36.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 6000000000ns (= 6.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 6000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:06.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_51000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_51000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_36000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_21000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_6000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_21000000000.txt
+
+FORWARDING STATE AT T = 52000000000ns (= 52.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 52000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:52.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_36000000000.txt
+
+FORWARDING STATE AT T = 22000000000ns (= 22.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 22000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:22.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_6000000000.txt
+
+FORWARDING STATE AT T = 37000000000ns (= 37.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 37000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:37.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 7000000000ns (= 7.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 7000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:07.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_52000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_52000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_22000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_22000000000.txt
+
+FORWARDING STATE AT T = 53000000000ns (= 53.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 53000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:53.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_37000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_7000000000.txt
+
+FORWARDING STATE AT T = 23000000000ns (= 23.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 23000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:23.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_37000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_7000000000.txt
+
+FORWARDING STATE AT T = 38000000000ns (= 38.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 38000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:38.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_53000000000.txt
+
+FORWARDING STATE AT T = 8000000000ns (= 8.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 8000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:08.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_23000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_53000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_23000000000.txt
+
+FORWARDING STATE AT T = 24000000000ns (= 24.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 24000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:24.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 54000000000ns (= 54.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 54000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:54.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_38000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_8000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_8000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_38000000000.txt
+
+FORWARDING STATE AT T = 9000000000ns (= 9.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 9000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:09.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_24000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_54000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_54000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_24000000000.txt
+
+FORWARDING STATE AT T = 39000000000ns (= 39.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 39000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:39.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 25000000000ns (= 25.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 25000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:25.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 55000000000ns (= 55.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 55000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:55.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_9000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_39000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_9000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_55000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+FORWARDING STATE AT T = 10000000000ns (= 10.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 10000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:10.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_25000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_55000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_39000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_25000000000.txt
+
+FORWARDING STATE AT T = 56000000000ns (= 56.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 56000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:56.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 40000000000ns (= 40.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 40000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:40.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 26000000000ns (= 26.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 26000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:26.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_10000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_10000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_56000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+
+FORWARDING STATE AT T = 11000000000ns (= 11.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 11000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:11.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_40000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_26000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_40000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_26000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_56000000000.txt
+
+FORWARDING STATE AT T = 41000000000ns (= 41.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 41000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:41.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 27000000000ns (= 27.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 27000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:27.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 57000000000ns (= 57.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 57000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:57.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 3
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_11000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_11000000000.txt
+
+FORWARDING STATE AT T = 12000000000ns (= 12.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 12000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:12.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_27000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_41000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_57000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_27000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_41000000000.txt
+
+FORWARDING STATE AT T = 28000000000ns (= 28.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 28000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:28.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_57000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_12000000000.txt
+
+FORWARDING STATE AT T = 42000000000ns (= 42.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 42000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:42.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_12000000000.txt
+
+FORWARDING STATE AT T = 58000000000ns (= 58.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 58000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:58.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 13000000000ns (= 13.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 13000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:13.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 210
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_28000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_28000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_42000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_42000000000.txt
+
+FORWARDING STATE AT T = 29000000000ns (= 29.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 29000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:29.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_58000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_58000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_13000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_13000000000.txt
+
+FORWARDING STATE AT T = 43000000000ns (= 43.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 43000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:43.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 59000000000ns (= 59.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 59000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:59.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 14000000000ns (= 14.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 14000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:14.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 215
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_29000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_29000000000.txt
+
+FORWARDING STATE AT T = 30000000000ns (= 30.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 30000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:30.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_43000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_59000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_14000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_43000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_14000000000.txt
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_59000000000.txt
+
+FORWARDING STATE AT T = 44000000000ns (= 44.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 44000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:44.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+FORWARDING STATE AT T = 15000000000ns (= 15.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 15000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:15.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_30000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_30000000000.txt
+
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_44000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_44000000000.txt
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_15000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+
+FORWARDING STATE AT T = 45000000000ns (= 45.0 seconds)
+
+BASIC INFORMATION
+  > Epoch.................. 2000-01-01 00:00:00.000
+  > Time since epoch....... 45000000000 ns
+  > Absolute time.......... 2000-01-01 00:00:45.000
+  > Satellites............. 120
+  > Ground stations........ 120
+  > Max. range GSL......... 1089686.4181956202m
+  > Max. range ISL......... 5016591.233098428m
+
+ISL INFORMATION
+  > Total ISLs............. 240
+  > Active ISLs............ 220
+  > Min. ISLs/satellite.... 4
+  > Max. ISLs/satellite.... 4
+
+GSL INTERFACE INFORMATION
+  > Min. GSL IFs/satellite........ 1
+  > Max. GSL IFs/satellite........ 1
+  > Min. GSL IFs/ground station... 1
+  > Max. GSL IFs/ground_station... 1
+
+GSL IN-RANGE INFORMATION
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_15000000000.txt
+
+  > Min. satellites in range... 1
+  > Max. satellites in range... 2
+
+ALGORITHM: FREE ONE ONLY OVER ISLS
+  > Writing interface bandwidth state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/gsl_if_bandwidth_45000000000.txt
+  > Calculating Floyd-Warshall for graph without ground-station relays
+  > Writing forwarding state to: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls/dynamic_state_1000ms_for_60s/fstate_45000000000.txt
+
+Generated satellite network state: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/gen_data/starlink_550_120_isls_plus_grid_ground_stations_satellite_anchored_120_algorithm_free_one_only_over_isls
+Generated ns-3 run directory: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/runs/main
+ns-3 config: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/runs/main/config_ns3.properties
+Running ns-3 simulation...
+Run directory: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/runs/main
+Console log: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/runs/main/logs_ns3/console.txt
+ns-3 simulation completed: /home/xuke/tz-Hypatia/hypatia/my_experiments/experiments/starlink_550_120_satfill_3s/runs/main
