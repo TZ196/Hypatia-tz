@@ -82,14 +82,31 @@ def generate_traffic_plan(config) -> tuple[list[TrafficFlow], list[list[int]]]:
                 )
             )
 
-        return flows, matrix
+        return _sort_and_reassign_flow_ids(flows), matrix
 
     if mode == "satellite_pair_min_cover":
-        return _generate_min_cover_plan(config, stations)
+        flows, matrix = _generate_min_cover_plan(config, stations)
+        return _sort_and_reassign_flow_ids(flows), matrix
 
     raise ValueError(
         "Only TRAFFIC_PAIR_MODE in {'satellite_pair_stratified', 'satellite_pair_min_cover'} is supported"
     )
+
+
+def _sort_and_reassign_flow_ids(flows: list[TrafficFlow]) -> list[TrafficFlow]:
+    sorted_flows = sorted(flows, key=lambda flow: (flow.start_time_ns, flow.flow_id))
+    return [
+        TrafficFlow(
+            flow_id=flow_id,
+            src_node_id=flow.src_node_id,
+            dst_node_id=flow.dst_node_id,
+            size_byte=flow.size_byte,
+            start_time_ns=flow.start_time_ns,
+            src_local_id=flow.src_local_id,
+            dst_local_id=flow.dst_local_id,
+        )
+        for flow_id, flow in enumerate(sorted_flows)
+    ]
 
 
 def station_activity_rows(config) -> list[dict[str, str]]:
