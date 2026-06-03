@@ -553,12 +553,18 @@ def _select_fstate_time(time_ns, available_fstates, time_step_ms):
 def _read_fstate(path):
     forwarding = {}
     with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
+        for line_number, line in enumerate(f, start=1):
+            line = line.replace("\x00", "").strip()
             if not line:
                 continue
-            current, dest, next_hop, _own_if, _next_if = line.split(",", 4)
-            forwarding[(int(current), int(dest))] = int(next_hop)
+            parts = line.split(",", 4)
+            if len(parts) != 5:
+                raise ValueError(f"Invalid fstate row in {path}:{line_number}: {line!r}")
+            current, dest, next_hop, _own_if, _next_if = parts
+            try:
+                forwarding[(int(current), int(dest))] = int(next_hop)
+            except ValueError as exc:
+                raise ValueError(f"Invalid fstate row in {path}:{line_number}: {line!r}") from exc
     return forwarding
 
 
