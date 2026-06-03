@@ -1,0 +1,142 @@
+`tensor_tools.py` 是另一个共享工具：它不生成流量，而是把**已经跑完的仿真输出**转成张量。
+
+可以简单分工成：
+
+```text
+traffic_plan.py  = 生成 schedule.csv，决定跑哪些流
+tensor_tools.py  = 读取 logs_ns3 / gen_data，把结果变成 .npy / .npz 张量
+```
+
+它主要有 5 类功能。
+
+`1. traffic tensor`
+
+```python
+build_traffic_tensor(...)
+```
+
+读取：
+
+```text
+logs_ns3/tcp_flows.txt
+logs_ns3/tcp_flow_<id>_progress.csv
+```
+
+输出：
+
+```text
+runs/main/data/traffic_tensor.npy
+```
+
+形状：
+
+```text
+(NUM_GROUND_STATIONS, NUM_GROUND_STATIONS, num_time_slices)
+```
+
+含义：
+
+```text
+某个时间片内，地面站 i -> 地面站 j 实际传了多少 bytes
+```
+
+`2. RTT tensor`
+
+```python
+build_rtt_tensor(...)
+```
+
+读取：
+
+```text
+logs_ns3/tcp_flow_<id>_rtt.csv
+```
+
+输出：
+
+```text
+runs/main/data/rtt_tensor.npy
+```
+
+它做的是按时间加权的平均 RTT。注意这个函数里 RTT 原始单位仍按日志里的值处理，代码没有在这里换成 ms。
+
+`3. satellite connectivity tensor`
+
+```python
+build_sat_connectivity_tensor(...)
+```
+
+读取 satgenpy 生成的：
+
+```text
+isls.txt
+tles.txt
+description.txt
+```
+
+输出：
+
+```text
+sat_connectivity_tensor_dynamic_<duration>s_<bin_ms>ms.npz
+```
+
+里面：
+
+```text
+sat_connectivity[i,j,t] = 1 表示卫星 i 和 j 在 t 时间片有 ISL 连接
+sat_connectivity[i,j,t] = 0 表示没有连接
+```
+
+这个就是你之前导出第一秒 CSV 的那个。
+
+`4. sat_path_flow tensors`
+
+```python
+build_sat_path_tensors(...)
+```
+
+读取 ns-3 直接输出的：
+
+```text
+logs_ns3/sat_path_flow/bytes/t_*.csv
+logs_ns3/sat_path_flow/drop_bytes/t_*.csv
+logs_ns3/sat_path_flow/rtt_ns/t_*.csv
+```
+
+输出：
+
+```text
+sat_path_bytes_tensor.npy
+sat_path_drop_bytes_tensor.npy
+sat_path_rtt_ns_tensor.npy
+```
+
+这里要注意：共享版 `tensor_tools.py` 目前还是输出 `sat_path_rtt_ns_tensor.npy`，没有换成 ms。你之前我改的是两个实验目录里的独立 `build_sat_path_tensors.py`，不是这个共享文件。
+
+`5. route-derived sat path flow`
+
+```python
+build_sat_path_flow_from_routes(...)
+```
+
+这是对照/辅助工具。它读取：
+
+```text
+tcp_flow_<id>_progress.csv
+dynamic_state_*/fstate_*.txt
+```
+
+然后根据 fstate 恢复每条 flow 当时的卫星路径，把 bytes 展开到路径里的所有：
+
+```text
+前序卫星 -> 后续卫星
+```
+
+输出：
+
+```text
+sat_path_bytes_from_routes_tensor.npy
+logs_ns3/sat_path_flow_from_routes/bytes/t_*.csv
+```
+
+一句话：`tensor_tools.py` 是后处理张量工具，负责把 ground-station traffic、RTT、卫星拓扑、satellite path flow 这些东西整理成三维矩阵。
