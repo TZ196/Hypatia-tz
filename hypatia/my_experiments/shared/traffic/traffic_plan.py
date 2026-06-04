@@ -454,7 +454,7 @@ def _select_station_per_satellite(stations_by_satellite: dict[int, list[GroundSt
 
 def _min_cover_time_slices(config, available_fstates: list[int]) -> list[int]:
     end_ns = int(config.DURATION_S) * 1_000_000_000
-    return [time for time in available_fstates if 0 <= time <= end_ns]
+    return [time for time in available_fstates if 0 <= time < end_ns]
 
 
 def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[list[TrafficFlow], list[list[int]]]:

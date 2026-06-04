@@ -27,7 +27,7 @@ TRAFFIC_ACTIVITY_FILE = INPUT_DIR / "station_activity.csv"
 TRAFFIC_FLOW_DETAILS_FILE = INPUT_DIR / "traffic_flow_details.csv"
 
 SATELLITE_NETWORK = "starlink_550_120"
-DURATION_S = 60
+DURATION_S = 600
 TIME_STEP_MS = 1000
 ISL_MODE = "isls_plus_grid"
 GS_SELECTION = "ground_stations_satellite_anchored_120"
@@ -40,16 +40,14 @@ NUM_GROUND_STATIONS = 120
 GS_START_NODE_ID = NUM_SATELLITES
 ISL_SHIFT = 0
 
-# Each source access satellite sends one flow to every other destination
-# access satellite exactly once.
-TRAFFIC_PAIR_MODE = "satellite_pair_stratified"
-TRAFFIC_SATELLITE_PAIR_SAMPLE_K = 119
-TRAFFIC_INCLUDE_SELF_SAT_DEST = False
-TRAFFIC_ALLOW_REPEATED_DEST_SAT = False
-TRAFFIC_FLOW_COUNT = NUM_SATELLITES * TRAFFIC_SATELLITE_PAIR_SAMPLE_K
-TRAFFIC_MIN_DISTANCE_KM = 0
+# Greedily cover all ordered satellite path pairs in every generated fstate
+# time slice for the 10-minute run. Do not merge repeated src/dst pairs:
+# separate flows keep traffic starts distributed across the full time range.
+TRAFFIC_PAIR_MODE = "satellite_pair_min_cover"
+TRAFFIC_MIN_COVER_MERGE_SAME_PAIR = False
+TRAFFIC_MIN_COVER_MAX_CANDIDATES = None
+TRAFFIC_MIN_COVER_MAX_FLOWS_PER_SLICE = None
 TRAFFIC_SEED = 123456789
-TRAFFIC_START_TIME_NS = 0
 TRAFFIC_REFERENCE_UTC_HOUR = 0
 TRAFFIC_FLOW_SIZE_BYTES = 10_000_000
 
