@@ -15,6 +15,8 @@ import shutil
 import subprocess
 import sys
 
+from shared.experiment_desc import write_experiment_description
+
 
 def read_ground_stations(path):
     stations = []
@@ -230,6 +232,7 @@ def generate_satellite_network_state(config, constellation_helper, threads):
         threads,
         ground_stations_basic_file=config.GROUND_STATIONS_FILE,
         isl_shift=getattr(config, "ISL_SHIFT", 0),
+        dynamic_state_config=getattr(config, "DYNAMIC_STATE_CONFIG", None),
     )
     print(f"Generated satellite network state: {config.generated_satellite_network_dir()}")
 
@@ -353,6 +356,7 @@ def run_ns3(config, build=False):
 
 def run_pipeline(config, constellation_helper, threads=4, build=False):
     define_ground_stations(config)
+    write_experiment_description(config, constellation_helper)
     mode = getattr(config, "TRAFFIC_PAIR_MODE", "satellite_pair_stratified")
     if mode == "satellite_pair_min_cover":
         generate_satellite_network_state(config, constellation_helper, threads)

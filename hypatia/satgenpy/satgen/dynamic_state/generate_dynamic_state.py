@@ -29,6 +29,14 @@ from .algorithm_free_one_only_gs_relays import algorithm_free_one_only_gs_relays
 from .algorithm_free_one_only_over_isls import algorithm_free_one_only_over_isls
 from .algorithm_paired_many_only_over_isls import algorithm_paired_many_only_over_isls
 from .algorithm_free_gs_one_sat_many_only_over_isls import algorithm_free_gs_one_sat_many_only_over_isls
+from .link_policies import (
+    apply_gsl_access_limit,
+    dynamic_topology_enabled,
+    evaluate_gsl,
+    evaluate_isl,
+)
+from .route_export import export_route_paths
+from .topology_export import export_gsl_decisions, export_isl_decisions, export_topology_stats
 
 
 def generate_dynamic_state(
@@ -47,16 +55,18 @@ def generate_dynamic_state(
                                   # "algorithm_free_one_only_gs_relays"
                                   # "algorithm_free_one_only_over_isls"
                                   # "algorithm_paired_many_only_over_isls"
-        enable_verbose_logs
+        enable_verbose_logs,
+        dynamic_state_config=None
 ):
     if offset_ns % time_step_ns != 0:
         raise ValueError("Offset must be a multiple of time_step_ns")
     prev_output = None
     i = 0
     total_iterations = ((simulation_end_time_ns - offset_ns) / time_step_ns)
+    progress_interval = max(1, int(math.floor(total_iterations) / 10.0))
     for time_since_epoch_ns in range(offset_ns, simulation_end_time_ns, time_step_ns):
         if not enable_verbose_logs:
-            if i % int(math.floor(total_iterations) / 10.0) == 0:
+            if i % progress_interval == 0:
                 print("Progress: calculating for T=%d (time step granularity is still %d ms)" % (
                     time_since_epoch_ns, time_step_ns / 1000000
                 ))
@@ -73,7 +83,8 @@ def generate_dynamic_state(
             max_isl_length_m,
             dynamic_state_algorithm,
             prev_output,
-            enable_verbose_logs
+            enable_verbose_logs,
+            dynamic_state_config
         )
 
 
@@ -89,7 +100,8 @@ def generate_dynamic_state_at(
         max_isl_length_m,
         dynamic_state_algorithm,
         prev_output,
-        enable_verbose_logs
+        enable_verbose_logs,
+        dynamic_state_config=None
 ):
     if enable_verbose_logs:
         print("FORWARDING STATE AT T = " + (str(time_since_epoch_ns))
@@ -110,6 +122,7 @@ def generate_dynamic_state_at(
     # Graphs
     sat_net_graph_only_satellites_with_isls = nx.Graph()
     sat_net_graph_all_with_only_gsls = nx.Graph()
+    sat_net_graph_with_active_links = nx.Graph()
 
     # Information
     for i in range(len(satellites)):
@@ -117,6 +130,7 @@ def generate_dynamic_state_at(
         sat_net_graph_all_with_only_gsls.add_node(i)
     for i in range(len(satellites) + len(ground_stations)):
         sat_net_graph_all_with_only_gsls.add_node(i)
+        sat_net_graph_with_active_links.add_node(i)
     if enable_verbose_logs:
         print("  > Satellites............. " + str(len(satellites)))
         print("  > Ground stations........ " + str(len(ground_stations)))
@@ -133,6 +147,14 @@ def generate_dynamic_state_at(
     active_num_isls = 0
     num_isls_per_sat = [0] * len(satellites)
     sat_neighbor_to_if = {}
+    isl_policy_state = {}
+    gsl_policy_state = {}
+    prev_route_paths = {}
+    if prev_output:
+        isl_policy_state = prev_output.get("isl_policy_state", {})
+        gsl_policy_state = prev_output.get("gsl_policy_state", {})
+        prev_route_paths = prev_output.get("route_paths", {})
+    isl_rows = []
     for (a, b) in list_isls:
 
         # Interface mapping must include every configured ISL, even if it is
@@ -145,14 +167,56 @@ def generate_dynamic_state_at(
         num_isls_per_sat[b] += 1
         total_num_isls += 1
 
-        # Only active ISLs are added to the routing graph.
-        sat_distance_m = distance_m_between_satellites(satellites[a], satellites[b], str(epoch), str(time))
-        if sat_distance_m > max_isl_length_m:
-            continue
+        if dynamic_topology_enabled(dynamic_state_config):
+            decision = evaluate_isl(
+                a,
+                b,
+                epoch,
+                time,
+                time_since_epoch_ns,
+                satellites,
+                max_isl_length_m,
+                dynamic_state_config,
+                isl_policy_state,
+            )
+            sat_distance_m = decision.distance_m
+            edge_weight = decision.weight
+            isl_rows.append({
+                "time_ns": time_since_epoch_ns,
+                "src_sat": a,
+                "dst_sat": b,
+                "active": decision.active,
+                "raw_active": decision.raw_active,
+                "event": decision.event,
+                "reason": decision.reason,
+                "distance_m": decision.distance_m,
+                "weight": decision.weight,
+                "link_type": decision.link_type,
+                "lat_src_deg": decision.lat_a_deg,
+                "lat_dst_deg": decision.lat_b_deg,
+                "pointing_src_deg": decision.pointing_a_deg,
+                "pointing_dst_deg": decision.pointing_b_deg,
+                "tracking_rate_src_deg_s": decision.tracking_rate_a_deg_s,
+                "tracking_rate_dst_deg_s": decision.tracking_rate_b_deg_s,
+                "earth_clearance_m": decision.earth_clearance_m,
+                "predicted_link_duration_s": decision.predicted_link_duration_s,
+                "age_s": decision.age_s,
+            })
+            if not decision.active:
+                continue
+        else:
+            # Only active ISLs are added to the routing graph.
+            sat_distance_m = distance_m_between_satellites(satellites[a], satellites[b], str(epoch), str(time))
+            if sat_distance_m > max_isl_length_m:
+                continue
+            edge_weight = sat_distance_m
 
         # Add to networkx graph
         sat_net_graph_only_satellites_with_isls.add_edge(
-            a, b, weight=sat_distance_m
+            a, b, weight=edge_weight, distance_m=sat_distance_m
+        )
+        sat_net_graph_with_active_links.add_edge(
+            a, b, weight=edge_weight, distance_m=sat_distance_m
         )
         active_num_isls += 1
 
@@ -188,20 +252,97 @@ def generate_dynamic_state_at(
 
     # What satellites can a ground station see
     ground_station_satellites_in_range = []
+    gsl_rows = []
+    gsl_config = {}
+    if isinstance(dynamic_state_config, dict):
+        gsl_config = dynamic_state_config.get("gsl", {})
     for ground_station in ground_stations:
         # Find satellites in range
         satellites_in_range = []
+        per_ground_station_rows = []
         for sid in range(len(satellites)):
-            distance_m = distance_m_ground_station_to_satellite(
-                ground_station,
-                satellites[sid],
-                str(epoch),
-                str(time)
+            if dynamic_topology_enabled(dynamic_state_config):
+                decision = evaluate_gsl(
+                    ground_station,
+                    sid,
+                    satellites[sid],
+                    epoch,
+                    time,
+                    time_since_epoch_ns,
+                    max_gsl_length_m,
+                    dynamic_state_config,
+                    gsl_policy_state,
+                )
+                row = {
+                    "time_ns": time_since_epoch_ns,
+                    "ground_station_id": ground_station["gid"],
+                    "sat_id": sid,
+                    "active": decision.active,
+                    "raw_active": decision.raw_active,
+                    "event": decision.event,
+                    "reason": decision.reason,
+                    "distance_m": decision.distance_m,
+                    "weight": decision.weight,
+                    "elevation_deg": decision.elevation_deg,
+                    "age_s": decision.age_s,
+                }
+                per_ground_station_rows.append(row)
+            else:
+                distance_m = distance_m_ground_station_to_satellite(
+                    ground_station,
+                    satellites[sid],
+                    str(epoch),
+                    str(time)
+                )
+                row = {
+                    "time_ns": time_since_epoch_ns,
+                    "ground_station_id": ground_station["gid"],
+                    "sat_id": sid,
+                    "active": distance_m <= max_gsl_length_m,
+                    "raw_active": distance_m <= max_gsl_length_m,
+                    "event": "",
+                    "reason": "active" if distance_m <= max_gsl_length_m else "distance_exceeded",
+                    "distance_m": distance_m,
+                    "weight": distance_m,
+                    "elevation_deg": "",
+                    "age_s": "",
+                }
+                per_ground_station_rows.append(row)
+
+        max_active_sats = gsl_config.get("max_active_satellites_per_ground_station")
+        if dynamic_topology_enabled(dynamic_state_config) and max_active_sats is not None:
+            active_rows = [row for row in per_ground_station_rows if row["active"]]
+            access_metric = gsl_config.get("access_selection_metric", "distance")
+            reverse = access_metric == "elevation"
+            sort_key = "elevation_deg" if access_metric == "elevation" else "distance_m"
+            selected = set(
+                row["sat_id"] for row in sorted(active_rows, key=lambda r: r[sort_key], reverse=reverse)[
+                    0:int(max_active_sats)
+                ]
             )
-            if distance_m <= max_gsl_length_m:
-                satellites_in_range.append((distance_m, sid))
+            for row in per_ground_station_rows:
+                if row["active"] and row["sat_id"] not in selected:
+                    event, age_s = apply_gsl_access_limit(
+                        row["ground_station_id"],
+                        row["sat_id"],
+                        time_since_epoch_ns,
+                        gsl_policy_state,
+                    )
+                    row["active"] = False
+                    row["event"] = event
+                    row["reason"] = "access_limit"
+                    row["age_s"] = age_s
+
+        for row in per_ground_station_rows:
+            gsl_rows.append(row)
+            if row["active"]:
+                satellites_in_range.append((row["weight"], row["sat_id"]))
+                gs_node_id = len(satellites) + ground_station["gid"]
                 sat_net_graph_all_with_only_gsls.add_edge(
-                    sid, len(satellites) + ground_station["gid"], weight=distance_m
+                    row["sat_id"], gs_node_id, weight=row["weight"], distance_m=row["distance_m"]
+                )
+                sat_net_graph_with_active_links.add_edge(
+                    row["sat_id"], gs_node_id, weight=row["weight"], distance_m=row["distance_m"]
                 )
 
         ground_station_satellites_in_range.append(satellites_in_range)
@@ -222,7 +363,7 @@ def generate_dynamic_state_at(
     #
     if dynamic_state_algorithm == "algorithm_free_one_only_over_isls":
 
-        return algorithm_free_one_only_over_isls(
+        algorithm_output = algorithm_free_one_only_over_isls(
             output_dynamic_state_dir,
             time_since_epoch_ns,
             satellites,
@@ -238,7 +379,7 @@ def generate_dynamic_state_at(
 
     elif dynamic_state_algorithm == "algorithm_free_gs_one_sat_many_only_over_isls":
 
-        return algorithm_free_gs_one_sat_many_only_over_isls(
+        algorithm_output = algorithm_free_gs_one_sat_many_only_over_isls(
             output_dynamic_state_dir,
             time_since_epoch_ns,
             satellites,
@@ -254,7 +395,7 @@ def generate_dynamic_state_at(
 
     elif dynamic_state_algorithm == "algorithm_free_one_only_gs_relays":
 
-        return algorithm_free_one_only_gs_relays(
+        algorithm_output = algorithm_free_one_only_gs_relays(
             output_dynamic_state_dir,
             time_since_epoch_ns,
             satellites,
@@ -268,7 +409,7 @@ def generate_dynamic_state_at(
 
     elif dynamic_state_algorithm == "algorithm_paired_many_only_over_isls":
 
-        return algorithm_paired_many_only_over_isls(
+        algorithm_output = algorithm_paired_many_only_over_isls(
             output_dynamic_state_dir,
             time_since_epoch_ns,
             satellites,
@@ -284,3 +425,28 @@ def generate_dynamic_state_at(
 
     else:
         raise ValueError("Unknown dynamic state algorithm: " + str(dynamic_state_algorithm))
+
+    if dynamic_topology_enabled(dynamic_state_config):
+        export_isl_decisions(output_dynamic_state_dir, time_since_epoch_ns, isl_rows)
+        export_gsl_decisions(output_dynamic_state_dir, time_since_epoch_ns, gsl_rows)
+        export_topology_stats(
+            output_dynamic_state_dir,
+            time_since_epoch_ns,
+            isl_rows,
+            gsl_rows,
+            sat_net_graph_only_satellites_with_isls,
+        )
+        route_paths = export_route_paths(
+            output_dynamic_state_dir,
+            time_since_epoch_ns,
+            algorithm_output["fstate"],
+            prev_route_paths,
+            sat_net_graph_with_active_links,
+            len(satellites),
+            len(ground_stations),
+        )
+        algorithm_output["isl_policy_state"] = isl_policy_state
+        algorithm_output["gsl_policy_state"] = gsl_policy_state
+        algorithm_output["route_paths"] = route_paths
+
+    return algorithm_output

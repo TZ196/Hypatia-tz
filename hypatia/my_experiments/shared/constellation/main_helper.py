@@ -77,7 +77,8 @@ class MainHelper:
             dynamic_state_algorithm,  # algorithm_{free_one_only_{gs_relays,_over_isls}, paired_many_only_over_isls}
             num_threads,
             ground_stations_basic_file=None,
-            isl_shift=None
+            isl_shift=None,
+            dynamic_state_config=None
     ):
 
         output_generated_data_dir = Path(output_generated_data_dir)
@@ -206,5 +207,6 @@ class MainHelper:
             self.MAX_GSL_LENGTH_M,
             self.MAX_ISL_LENGTH_M,
             dynamic_state_algorithm,
-            True
+            True,
+            dynamic_state_config
         )

@@ -25,6 +25,7 @@ from satgen.ground_stations import *
 from satgen.tles import *
 from satgen.interfaces import *
 from .generate_dynamic_state import generate_dynamic_state
+from .link_policies import continuity_enabled
 import os
 import math
 from multiprocessing.dummy import Pool as ThreadPool
@@ -46,7 +47,8 @@ def worker(args):
         max_gsl_length_m,
         max_isl_length_m,
         dynamic_state_algorithm,
-        print_logs
+        print_logs,
+        dynamic_state_config
      ) = args
 
     # Generate dynamic state
@@ -67,13 +69,15 @@ def worker(args):
                                   # "algorithm_free_one_only_over_isls"
                                   # "algorithm_free_gs_one_sat_many_only_over_isls"
                                   # "algorithm_paired_many_only_over_isls"
-        print_logs
+        print_logs,
+        dynamic_state_config
     )
 
 
 def help_dynamic_state(
         output_generated_data_dir, num_threads, name, time_step_ms, duration_s,
-        max_gsl_length_m, max_isl_length_m, dynamic_state_algorithm, print_logs
+        max_gsl_length_m, max_isl_length_m, dynamic_state_algorithm, print_logs,
+        dynamic_state_config=None
 ):
 
     # Directory
@@ -85,6 +89,9 @@ def help_dynamic_state(
     # In nanoseconds
     simulation_end_time_ns = duration_s * 1000 * 1000 * 1000
     time_step_ns = time_step_ms * 1000 * 1000
+    if continuity_enabled(dynamic_state_config) and num_threads != 1:
+        print("Dynamic topology continuity is enabled; using one thread to preserve G(t)=G(t-1)+delta.")
+        num_threads = 1
 
     num_calculations = math.floor(simulation_end_time_ns / time_step_ns)
     calculations_per_thread = int(math.floor(float(num_calculations) / float(num_threads)))
@@ -132,7 +139,8 @@ def help_dynamic_state(
             max_gsl_length_m,
             max_isl_length_m,
             dynamic_state_algorithm,
-            print_logs
+            print_logs,
+            dynamic_state_config
         ))
 
         current += num_time_steps
