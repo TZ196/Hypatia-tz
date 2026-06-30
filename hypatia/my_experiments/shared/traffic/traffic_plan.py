@@ -587,9 +587,6 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
     for time_ns in time_slices:
         fstate = _read_cumulative_fstate(dynamic_state_dir, available_fstates, time_ns, fstate_cache)
 
-        uncovered = [True] * (num_satellites * num_satellites)
-        for sat_id in range(num_satellites):
-            uncovered[sat_id * num_satellites + sat_id] = False
         uncovered_count = num_satellites * (num_satellites - 1)
 
         coverage_lists = []
@@ -605,24 +602,27 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
             else:
                 coverage_lists.append([])
 
-        selected_indices = []
-        coverable_pairs = set()
+        coverage_masks = []
+        coverable_mask = 0
         for coverage in coverage_lists:
-            coverable_pairs.update(coverage)
+            mask = 0
+            for pair_idx in coverage:
+                mask |= 1 << pair_idx
+            coverage_masks.append(mask)
+            coverable_mask |= mask
 
-        remaining_coverable = len(coverable_pairs)
-        target_covered = int(math.ceil(len(coverable_pairs) * target_coverage))
-        target_remaining = len(coverable_pairs) - target_covered
-        while remaining_coverable > target_remaining:
+        selected_indices = []
+        coverable_count = coverable_mask.bit_count()
+        uncovered_mask = coverable_mask
+        target_covered = int(math.ceil(coverable_count * target_coverage))
+        covered_count = 0
+        while covered_count < target_covered:
             best_idx = None
             best_new = 0
-            for idx, coverage in enumerate(coverage_lists):
-                if not coverage:
+            for idx, mask in enumerate(coverage_masks):
+                if not mask:
                     continue
-                new_count = 0
-                for pair_idx in coverage:
-                    if pair_idx in coverable_pairs and uncovered[pair_idx]:
-                        new_count += 1
+                new_count = (mask & uncovered_mask).bit_count()
                 if new_count > best_new:
                     best_new = new_count
                     best_idx = idx
@@ -631,25 +631,24 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
                 break
 
             selected_indices.append(best_idx)
-            for pair_idx in coverage_lists[best_idx]:
-                if pair_idx in coverable_pairs and uncovered[pair_idx]:
-                    uncovered[pair_idx] = False
-                    remaining_coverable -= 1
+            uncovered_mask &= ~coverage_masks[best_idx]
+            covered_count = coverable_count - uncovered_mask.bit_count()
 
-            coverage_lists[best_idx] = []
+            coverage_masks[best_idx] = 0
 
             if max_flows_per_slice is not None and len(selected_indices) >= max_flows_per_slice:
                 break
 
         per_slice_selected.append(selected_indices)
+        remaining_coverable = coverable_count - covered_count
         per_slice_uncovered.append(remaining_coverable)
-        per_slice_coverable.append(len(coverable_pairs))
+        per_slice_coverable.append(coverable_count)
         per_slice_coverage.append(
-            0.0 if not coverable_pairs
-            else (len(coverable_pairs) - remaining_coverable) / len(coverable_pairs)
+            0.0 if coverable_count == 0
+            else covered_count / coverable_count
         )
         per_slice_full_matrix_coverage.append(
-            (len(coverable_pairs) - remaining_coverable) / uncovered_count
+            covered_count / uncovered_count
         )
 
     merge_same_pair = bool(getattr(config, "TRAFFIC_MIN_COVER_MERGE_SAME_PAIR", True))
