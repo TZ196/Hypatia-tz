@@ -1,4 +1,4 @@
-"""Configuration for the Iridium-780 66-satellite biased stable-routing experiment."""
+"""Configuration for the Starlink-like 550 km 168-satellite experiment."""
 
 from pathlib import Path
 
@@ -26,25 +26,23 @@ TRAFFIC_MATRIX_FILE = INPUT_DIR / "traffic_matrix_bytes.csv"
 TRAFFIC_ACTIVITY_FILE = INPUT_DIR / "station_activity.csv"
 TRAFFIC_FLOW_DETAILS_FILE = INPUT_DIR / "traffic_flow_details.csv"
 
-SATELLITE_NETWORK = "iridium_780_66"
+SATELLITE_NETWORK = "starlink_550_168"
 DURATION_S = 180
 TIME_STEP_MS = 1000
 ISL_MODE = "isls_plus_grid"
-GS_SELECTION = "gs66_scale001"
+GS_SELECTION = "gs168_scale01"
 ROUTING_ALGORITHM = "algorithm_free_one_only_over_isls"
 
-NUM_SATELLITES = 66
-NUM_ORBITS = 6
-NUM_SATS_PER_ORBIT = 11
-NUM_GROUND_STATIONS = 66
+NUM_SATELLITES = 168
+NUM_ORBITS = 14
+NUM_SATS_PER_ORBIT = 12
+NUM_GROUND_STATIONS = 168
 GS_START_NODE_ID = NUM_SATELLITES
 ISL_SHIFT = 0
 
-# Biased stable routing:
-# - keep the dynamic topology/stability filters enabled;
-# - use consistent distance units for ISL and GSL weights;
-# - scale ISL route cost down to 1% so the route planner is willing to take
-#   longer satellite detours when that helps path-pair coverage.
+# Coverage-oriented shortest-path routing. ISL distance is scaled to 10% of
+# GSL distance so paths use satellite hops more readily, while keeping the
+# route metric in consistent distance units.
 DYNAMIC_STATE_CONFIG = {
     "general": {
         "enabled": True,
@@ -59,7 +57,7 @@ DYNAMIC_STATE_CONFIG = {
     "isl": {
         "num_orbits": NUM_ORBITS,
         "num_sats_per_orbit": NUM_SATS_PER_ORBIT,
-        "inclination_degree": 86.4,
+        "inclination_degree": 53.0,
         "allow_same_orbit": True,
         "allow_adjacent_orbit": True,
         "allow_seam_links": True,
@@ -67,19 +65,12 @@ DYNAMIC_STATE_CONFIG = {
         "compute_tracking_rate": True,
         "tracking_sample_ms": 1000.0,
         "duration_scan_step_s": 5.0,
+        "min_earth_clearance_m": 0.0,
     },
     "routing": {
-        "weight_mode": "stability_aware",
+        "weight_mode": "distance",
         "base_metric": "distance",
-        "isl_weight_scale": 0.001,
-        "lambda": 1.0,
-        "geometry_alpha": 1.0,
-        "temporal_beta": 2.0,
-        "initialization_gamma": 0.5,
-        "tau_duration_s": 60.0,
-        "tau_warmup_s": 30.0,
-        "duration_prediction_horizon_s": 60.0,
-        "apply_to_link_types": ["adjacent_orbit", "seam_link", "cross_plane"],
+        "isl_weight_scale": 0.1,
     },
     "gsl": {
         "weight": "distance",
@@ -87,9 +78,6 @@ DYNAMIC_STATE_CONFIG = {
     },
 }
 
-# Min-cover traffic is generated from the biased stable forwarding state.
-# Repeated source/destination pairs are merged to keep the TCP flow count small
-# while preserving the selected coverage demand in each pair's total size.
 TRAFFIC_PAIR_MODE = "satellite_pair_min_cover"
 TRAFFIC_MIN_COVER_TARGET_COVERAGE = 0.95
 TRAFFIC_MIN_COVER_MERGE_SAME_PAIR = True
@@ -97,7 +85,7 @@ TRAFFIC_MIN_COVER_MAX_CANDIDATES = None
 TRAFFIC_MIN_COVER_MAX_FLOWS_PER_SLICE = None
 TRAFFIC_SEED = 123456789
 TRAFFIC_REFERENCE_UTC_HOUR = 0
-TRAFFIC_FLOW_SIZE_BYTES = 20_000_000
+TRAFFIC_FLOW_SIZE_BYTES = 500_000_000
 TRAFFIC_TIMEZONE_SIZE_ENABLED = True
 TRAFFIC_TIMEZONE_SIZE_PAIR_MODE = "average"
 TRAFFIC_TIMEZONE_SIZE_MIN_MULTIPLIER = 0.25
@@ -110,7 +98,7 @@ TRAFFIC_TIMEZONE_SIZE_PROFILE = {
 }
 
 ISL_DATA_RATE_MBIT_PER_S = 1_000
-GSL_DATA_RATE_MBIT_PER_S = 100
+GSL_DATA_RATE_MBIT_PER_S = 200
 DATA_RATE_MBIT_PER_S = ISL_DATA_RATE_MBIT_PER_S
 QUEUE_SIZE_PKTS = 100
 TCP_SOCKET_TYPE = "TcpNewReno"

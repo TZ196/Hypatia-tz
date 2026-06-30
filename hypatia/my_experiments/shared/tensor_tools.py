@@ -308,7 +308,7 @@ def build_sat_path_tensors(config, output_dir=None, raw_units=False):
                     f"expected {(config.NUM_SATELLITES, config.NUM_SATELLITES)}"
                 )
             if scale != 1.0:
-                matrix = matrix.astype(np.float64) * scale
+                matrix = np.round(matrix.astype(np.float64) * scale, 2)
             matrices.append(matrix)
 
         tensor = np.stack(matrices, axis=2)
@@ -368,7 +368,7 @@ def build_postprocess_tensors(config):
 
     out_dir = _data_dir(config)
     outputs = []
-    outputs.extend(build_sat_path_tensors(config, output_dir=out_dir, raw_units=True))
+    outputs.extend(build_sat_path_tensors(config, output_dir=out_dir, raw_units=False))
     outputs.append(build_sat_adjacency_tensor(config, output_dir=out_dir))
     return outputs
 

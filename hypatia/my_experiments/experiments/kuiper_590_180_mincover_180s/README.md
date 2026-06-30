@@ -9,11 +9,9 @@ Kuiper-like 590 km, 33 degree compact shell experiment:
 - 180 satellite-anchored ground stations
 - ordinary distance shortest-path routing without ISL weight scaling
 - geometry-aware ISL exports with Earth-clearance and tracking-rate fields
-- 90% satellite-pair min-cover traffic with repeated source/destination pairs merged
+- 95% satellite-pair min-cover traffic with repeated source/destination pairs merged
 
-The base min-cover event size is `1_000_000` bytes. This is intentionally
-smaller than the 66-satellite Iridium experiment because the 180-satellite
-ordered matrix is much larger.
+The base min-cover event size is `500_000_000` bytes before timezone scaling.
 
 Prepare inputs only:
 
@@ -37,9 +35,9 @@ tail -f pipeline.log
 After ns-3 finishes, the full pipeline builds post-processing tensors under
 `runs/main/data/`:
 
-- `sat_path_bytes_tensor.npy`: satellite path traffic in bytes, shape `(180, 180, 180)`
-- `sat_path_drop_bytes_tensor.npy`: satellite path drops in bytes, shape `(180, 180, 180)`
-- `sat_path_rtt_ns_tensor.npy`: satellite path RTT in ns, shape `(180, 180, 180)`
+- `sat_path_bytes_mb_tensor.npy`: satellite path traffic in MB, rounded to 2 decimals, shape `(180, 180, 180)`
+- `sat_path_drop_mb_tensor.npy`: satellite path drops in MB, rounded to 2 decimals, shape `(180, 180, 180)`
+- `sat_path_rtt_ms_tensor.npy`: satellite path RTT in ms, rounded to 2 decimals, shape `(180, 180, 180)`
 - `sat_adjacency_tensor.npy`: active satellite ISL adjacency, shape `(180, 180, 180)`
 - `sat_adjacency_time_ns.npy`: time index for the adjacency tensor
 
