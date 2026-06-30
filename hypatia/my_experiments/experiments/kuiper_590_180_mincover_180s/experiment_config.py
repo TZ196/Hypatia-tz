@@ -40,9 +40,10 @@ NUM_GROUND_STATIONS = 180
 GS_START_NODE_ID = NUM_SATELLITES
 ISL_SHIFT = 0
 
-# Kuiper-like dynamic topology with ordinary distance shortest-path routing.
-# The Iridium experiment keeps the biased stability-aware routing; this Kuiper
-# experiment uses unscaled distance weights.
+# Kuiper-like dynamic topology with biased stability-aware shortest-path
+# routing. ISL cost is scaled down strongly so satgenpy prefers satellite
+# paths over switching GSL endpoints too early; this keeps the existing fstate
+# pipeline while raising single-slice satellite path-matrix coverage.
 DYNAMIC_STATE_CONFIG = {
     "general": {
         "enabled": True,
@@ -68,7 +69,17 @@ DYNAMIC_STATE_CONFIG = {
         "min_earth_clearance_m": 0.0,
     },
     "routing": {
-        "weight_mode": "distance",
+        "weight_mode": "stability_aware",
+        "base_metric": "distance",
+        "isl_weight_scale": 0.001,
+        "lambda": 1.0,
+        "geometry_alpha": 1.0,
+        "temporal_beta": 2.0,
+        "initialization_gamma": 0.5,
+        "tau_duration_s": 60.0,
+        "tau_warmup_s": 30.0,
+        "duration_prediction_horizon_s": 60.0,
+        "apply_to_link_types": ["adjacent_orbit", "seam_link", "cross_plane"],
     },
     "gsl": {
         "weight": "distance",
@@ -83,7 +94,7 @@ TRAFFIC_MIN_COVER_MAX_CANDIDATES = None
 TRAFFIC_MIN_COVER_MAX_FLOWS_PER_SLICE = None
 TRAFFIC_SEED = 123456789
 TRAFFIC_REFERENCE_UTC_HOUR = 0
-TRAFFIC_FLOW_SIZE_BYTES = 1_000_000
+TRAFFIC_FLOW_SIZE_BYTES = 100_000_000
 TRAFFIC_TIMEZONE_SIZE_ENABLED = True
 TRAFFIC_TIMEZONE_SIZE_PAIR_MODE = "average"
 TRAFFIC_TIMEZONE_SIZE_MIN_MULTIPLIER = 0.25
@@ -96,7 +107,7 @@ TRAFFIC_TIMEZONE_SIZE_PROFILE = {
 }
 
 ISL_DATA_RATE_MBIT_PER_S = 1_000
-GSL_DATA_RATE_MBIT_PER_S = 100
+GSL_DATA_RATE_MBIT_PER_S = 200
 DATA_RATE_MBIT_PER_S = ISL_DATA_RATE_MBIT_PER_S
 QUEUE_SIZE_PKTS = 100
 TCP_SOCKET_TYPE = "TcpNewReno"
