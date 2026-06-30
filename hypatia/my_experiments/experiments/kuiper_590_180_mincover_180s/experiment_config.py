@@ -40,8 +40,9 @@ NUM_GROUND_STATIONS = 180
 GS_START_NODE_ID = NUM_SATELLITES
 ISL_SHIFT = 0
 
-# Kuiper-like geometry-aware stable routing. 33 degree inclination does not
-# need the near-polar crossing-plane shutdown used for polar shells.
+# Kuiper-like dynamic topology with ordinary distance shortest-path routing.
+# The Iridium experiment keeps the biased stability-aware routing; this Kuiper
+# experiment uses unscaled distance weights.
 DYNAMIC_STATE_CONFIG = {
     "general": {
         "enabled": True,
@@ -67,17 +68,7 @@ DYNAMIC_STATE_CONFIG = {
         "min_earth_clearance_m": 0.0,
     },
     "routing": {
-        "weight_mode": "stability_aware",
-        "base_metric": "distance",
-        "isl_weight_scale": 0.01,
-        "lambda": 1.0,
-        "geometry_alpha": 1.0,
-        "temporal_beta": 2.0,
-        "initialization_gamma": 0.5,
-        "tau_duration_s": 60.0,
-        "tau_warmup_s": 30.0,
-        "duration_prediction_horizon_s": 60.0,
-        "apply_to_link_types": ["adjacent_orbit", "seam_link", "cross_plane"],
+        "weight_mode": "distance",
     },
     "gsl": {
         "weight": "distance",

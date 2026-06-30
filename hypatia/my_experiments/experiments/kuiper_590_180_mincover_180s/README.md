@@ -7,7 +7,7 @@ Kuiper-like 590 km, 33 degree compact shell experiment:
 - mean motion from a 96.3 minute period
 - 180 seconds, 1 second dynamic-state interval
 - 180 satellite-anchored ground stations
-- biased stability-aware routing with ISL weight scaled to 1%
+- ordinary distance shortest-path routing without ISL weight scaling
 - geometry-aware ISL exports with Earth-clearance and tracking-rate fields
 - 90% satellite-pair min-cover traffic with repeated source/destination pairs merged
 
