@@ -354,6 +354,17 @@ def run_ns3(config, build=False):
     print(f"ns-3 simulation completed: {rd}")
 
 
+def postprocess_tensors(config):
+    from shared import tensor_tools
+
+    print("Building post-processing tensors...")
+    outputs = tensor_tools.build_postprocess_tensors(config)
+    print("Generated tensor files:")
+    for path in outputs:
+        print(f"  {path}")
+    return outputs
+
+
 def run_pipeline(config, constellation_helper, threads=4, build=False):
     define_ground_stations(config)
     write_experiment_description(config, constellation_helper)
@@ -366,3 +377,5 @@ def run_pipeline(config, constellation_helper, threads=4, build=False):
         generate_satellite_network_state(config, constellation_helper, threads)
     generate_ns3_run(config)
     run_ns3(config, build=build)
+    if getattr(config, "POSTPROCESS_TENSORS_AFTER_NS3", False):
+        postprocess_tensors(config)

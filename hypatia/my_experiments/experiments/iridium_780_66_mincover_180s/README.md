@@ -19,3 +19,18 @@ Full ns-3 run:
 ```bash
 python run_pipeline.py --threads 4
 ```
+
+The full pipeline also builds post-processing tensors after ns-3 finishes.
+Outputs are written under `runs/main/data/`:
+
+- `sat_path_bytes_tensor.npy`: satellite path traffic in bytes, shape `(66, 66, 180)`
+- `sat_path_drop_bytes_tensor.npy`: satellite path drops in bytes, shape `(66, 66, 180)`
+- `sat_path_rtt_ns_tensor.npy`: satellite path RTT in ns, shape `(66, 66, 180)`
+- `sat_adjacency_tensor.npy`: active satellite ISL adjacency, shape `(66, 66, 180)`
+- `sat_adjacency_time_ns.npy`: time index for the adjacency tensor
+
+If ns-3 has already finished, build only the tensor outputs:
+
+```bash
+python run_postprocess.py
+```

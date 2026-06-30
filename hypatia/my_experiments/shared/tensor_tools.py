@@ -1,5 +1,6 @@
 """Reusable tensor builders for experiment outputs."""
 
+import csv
 import sys
 from pathlib import Path
 
@@ -261,7 +262,7 @@ def build_sat_connectivity_tensor(config, bin_ms=1000, output_name=None):
     return out_path
 
 
-def build_sat_path_tensors(config):
+def build_sat_path_tensors(config, output_dir=None, raw_units=False):
     """Build path-level satellite tensors from per-time-step matrix CSV files."""
 
     base_dir = _logs_dir(config) / "sat_path_flow"
@@ -271,13 +272,20 @@ def build_sat_path_tensors(config):
     metadata = _read_key_value_file(base_dir / "metadata.txt")
     expected_bins = int(metadata["num_time_bins"]) if "num_time_bins" in metadata else None
 
-    metric_specs = [
-        ("bytes", "sat_path_bytes_mb_tensor.npy", 1.0 / BYTES_PER_MB),
-        ("drop_bytes", "sat_path_drop_mb_tensor.npy", 1.0 / BYTES_PER_MB),
-        ("rtt_ns", "sat_path_rtt_ms_tensor.npy", 1.0 / 1_000_000.0),
-    ]
+    if raw_units:
+        metric_specs = [
+            ("bytes", "sat_path_bytes_tensor.npy", 1.0),
+            ("drop_bytes", "sat_path_drop_bytes_tensor.npy", 1.0),
+            ("rtt_ns", "sat_path_rtt_ns_tensor.npy", 1.0),
+        ]
+    else:
+        metric_specs = [
+            ("bytes", "sat_path_bytes_mb_tensor.npy", 1.0 / BYTES_PER_MB),
+            ("drop_bytes", "sat_path_drop_mb_tensor.npy", 1.0 / BYTES_PER_MB),
+            ("rtt_ns", "sat_path_rtt_ms_tensor.npy", 1.0 / 1_000_000.0),
+        ]
 
-    out_dir = _data_dir(config)
+    out_dir = Path(output_dir) if output_dir is not None else _data_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     outputs = []
@@ -309,6 +317,59 @@ def build_sat_path_tensors(config):
         print(f"Saved satellite path {metric} tensor {tensor.shape} to {out_path}")
         outputs.append(out_path)
 
+    return outputs
+
+
+def build_sat_adjacency_tensor(config, output_dir=None, output_name="sat_adjacency_tensor.npy"):
+    """Build a time-indexed satellite adjacency tensor from dynamic ISL outputs.
+
+    The preferred input is active_isls_<time_ns>.csv, which reflects the exact
+    dynamic topology policy used while generating forwarding state. If those
+    files are absent, fall back to the static isls.txt candidate graph.
+    """
+
+    dynamic_state_dir = config.generated_satellite_network_dir() / config.dynamic_state_dir_name()
+    out_dir = Path(output_dir) if output_dir is not None else _data_dir(config)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    files = sorted(dynamic_state_dir.glob("active_isls_*.csv"), key=_time_matrix_index)
+    if files:
+        expected_bins = config.DURATION_S * 1000 // config.TIME_STEP_MS
+        if len(files) != expected_bins:
+            raise ValueError(
+                f"Expected {expected_bins} active ISL CSV files in {dynamic_state_dir}, got {len(files)}"
+            )
+
+        tensor = np.zeros((config.NUM_SATELLITES, config.NUM_SATELLITES, len(files)), dtype=np.uint8)
+        time_ns = np.zeros((len(files),), dtype=np.int64)
+        for slice_idx, path in enumerate(files):
+            time_ns[slice_idx] = _time_matrix_index(path)
+            _fill_adjacency_from_active_isls_csv(path, tensor[:, :, slice_idx], config.NUM_SATELLITES)
+    else:
+        isls_path = config.generated_satellite_network_dir() / "isls.txt"
+        edges = _read_isls(isls_path)
+        expected_bins = config.DURATION_S * 1000 // config.TIME_STEP_MS
+        tensor = np.zeros((config.NUM_SATELLITES, config.NUM_SATELLITES, expected_bins), dtype=np.uint8)
+        time_ns = np.arange(expected_bins, dtype=np.int64) * config.TIME_STEP_MS * 1_000_000
+        for a, b in edges:
+            if 0 <= a < config.NUM_SATELLITES and 0 <= b < config.NUM_SATELLITES:
+                tensor[a, b, :] = 1
+                tensor[b, a, :] = 1
+
+    out_path = out_dir / output_name
+    np.save(out_path, tensor)
+    np.save(out_dir / "sat_adjacency_time_ns.npy", time_ns)
+    print(f"Saved satellite adjacency tensor {tensor.shape} to {out_path}")
+    return out_path
+
+
+def build_postprocess_tensors(config):
+    """Build the standard post-ns-3 tensor bundle for pipeline runs."""
+
+    out_dir = _data_dir(config)
+    outputs = []
+    outputs.extend(build_sat_path_tensors(config, output_dir=out_dir, raw_units=True))
+    outputs.append(build_sat_adjacency_tensor(config, output_dir=out_dir))
     return outputs
 
 
@@ -490,9 +551,10 @@ def verify_sat_connectivity_tensor(path):
 
 def _time_matrix_index(path):
     stem = path.stem
-    if not stem.startswith("t_"):
+    try:
+        return int(stem.rsplit("_", 1)[1])
+    except (IndexError, ValueError):
         return stem
-    return int(stem.split("_", 1)[1])
 
 
 def _read_key_value_file(path):
@@ -663,6 +725,17 @@ def _read_isls(path):
                 a, b = line.split()
                 edges.append((int(a), int(b)))
     return edges
+
+
+def _fill_adjacency_from_active_isls_csv(path, matrix, num_satellites):
+    with open(path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            a = int(row["src_sat"])
+            b = int(row["dst_sat"])
+            if 0 <= a < num_satellites and 0 <= b < num_satellites:
+                matrix[a, b] = 1
+                matrix[b, a] = 1
 
 
 def _read_max_isl_length(path):

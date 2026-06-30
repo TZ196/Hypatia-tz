@@ -88,8 +88,8 @@ DYNAMIC_STATE_CONFIG = {
 }
 
 # Min-cover traffic is generated from the biased stable forwarding state.
-# Repeated source/destination pairs are intentionally not merged so flow starts
-# stay distributed over the full three-minute interval.
+# Repeated source/destination pairs are merged to keep the TCP flow count small
+# while preserving the selected coverage demand in each pair's total size.
 TRAFFIC_PAIR_MODE = "satellite_pair_min_cover"
 TRAFFIC_MIN_COVER_TARGET_COVERAGE = 0.90
 TRAFFIC_MIN_COVER_MERGE_SAME_PAIR = True
@@ -122,6 +122,8 @@ ISL_UTILIZATION_TRACKING_INTERVAL_NS = 1_000_000_000
 
 ENABLE_SATELLITE_PATH_TRACKING = True
 SATELLITE_PATH_TRACKING_INTERVAL_NS = 1_000_000_000
+
+POSTPROCESS_TENSORS_AFTER_NS3 = True
 
 
 def satellite_network_name() -> str:
