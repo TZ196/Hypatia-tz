@@ -22,6 +22,7 @@ class TrafficFlow:
     start_time_ns: int
     src_local_id: int
     dst_local_id: int
+    metadata: str = ""
 
 
 @dataclass(frozen=True)
@@ -104,9 +105,82 @@ def _sort_and_reassign_flow_ids(flows: list[TrafficFlow]) -> list[TrafficFlow]:
             start_time_ns=flow.start_time_ns,
             src_local_id=flow.src_local_id,
             dst_local_id=flow.dst_local_id,
+            metadata=flow.metadata,
         )
         for flow_id, flow in enumerate(sorted_flows)
     ]
+
+
+def _timezone_offset_hours(longitude: float) -> int:
+    return max(-12, min(14, int(round(longitude / 15.0))))
+
+
+def _local_hour(station: GroundStation, utc_hour: float) -> int:
+    return int((float(utc_hour) + _timezone_offset_hours(station.longitude)) % 24)
+
+
+def _time_zone_activity_multiplier(config, src: GroundStation, dst: GroundStation, start_time_ns: int) -> tuple[float, str]:
+    if not bool(getattr(config, "TRAFFIC_TIMEZONE_SIZE_ENABLED", False)):
+        return 1.0, ""
+
+    utc_hour = (
+        float(getattr(config, "TRAFFIC_REFERENCE_UTC_HOUR", 0))
+        + start_time_ns / 3_600_000_000_000.0
+    ) % 24.0
+    profile = getattr(config, "TRAFFIC_TIMEZONE_SIZE_PROFILE", None)
+    if profile is None:
+        profile = {
+            "night": 0.35,
+            "morning": 0.80,
+            "business": 1.50,
+            "evening": 1.15,
+        }
+
+    def station_multiplier(station):
+        hour = _local_hour(station, utc_hour)
+        if 0 <= hour < 6:
+            bucket = "night"
+        elif 6 <= hour < 9:
+            bucket = "morning"
+        elif 9 <= hour < 18:
+            bucket = "business"
+        elif 18 <= hour < 23:
+            bucket = "evening"
+        else:
+            bucket = "night"
+        return float(profile.get(bucket, 1.0)), hour, bucket
+
+    src_mult, src_hour, src_bucket = station_multiplier(src)
+    dst_mult, dst_hour, dst_bucket = station_multiplier(dst)
+    pair_mode = getattr(config, "TRAFFIC_TIMEZONE_SIZE_PAIR_MODE", "average")
+    if pair_mode == "source":
+        multiplier = src_mult
+    elif pair_mode == "destination":
+        multiplier = dst_mult
+    elif pair_mode == "max":
+        multiplier = max(src_mult, dst_mult)
+    elif pair_mode == "product":
+        multiplier = src_mult * dst_mult
+    else:
+        multiplier = (src_mult + dst_mult) / 2.0
+
+    min_multiplier = float(getattr(config, "TRAFFIC_TIMEZONE_SIZE_MIN_MULTIPLIER", 0.1))
+    max_multiplier = float(getattr(config, "TRAFFIC_TIMEZONE_SIZE_MAX_MULTIPLIER", 3.0))
+    multiplier = max(min_multiplier, min(max_multiplier, multiplier))
+    metadata = (
+        "tz_weight=%.3f;src_tz=%+d;dst_tz=%+d;src_hour=%02d;dst_hour=%02d;"
+        "src_bucket=%s;dst_bucket=%s"
+        % (
+            multiplier,
+            _timezone_offset_hours(src.longitude),
+            _timezone_offset_hours(dst.longitude),
+            src_hour,
+            dst_hour,
+            src_bucket,
+            dst_bucket,
+        )
+    )
+    return multiplier, metadata
 
 
 def station_activity_rows(config) -> list[dict[str, str]]:
@@ -617,7 +691,13 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
         else:
             src_local, dst_local, _time_ns = key
         start_time_ns = flow_start_times[key]
-        size_byte = base_flow_size * flow_counts[key]
+        multiplier, metadata = _time_zone_activity_multiplier(
+            config,
+            stations[src_local],
+            stations[dst_local],
+            start_time_ns,
+        )
+        size_byte = max(1, int(round(base_flow_size * flow_counts[key] * multiplier)))
         matrix[src_local][dst_local] += size_byte
         flows.append(
             TrafficFlow(
@@ -628,6 +708,7 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
                 start_time_ns=start_time_ns,
                 src_local_id=src_local,
                 dst_local_id=dst_local,
+                metadata=metadata,
             )
         )
         flow_id += 1
@@ -648,24 +729,12 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
 
 def write_schedule(path: Path, flows: list[TrafficFlow]) -> None:
     sorted_flows = sorted(flows, key=lambda flow: (flow.start_time_ns, flow.flow_id))
-    try:
-        import networkload
-    except ImportError:
-        with open(path, "w", encoding="utf-8") as f:
-            for flow in sorted_flows:
-                f.write(
-                    f"{flow.flow_id},{flow.src_node_id},{flow.dst_node_id},"
-                    f"{flow.size_byte},{flow.start_time_ns},,\n"
-                )
-        return
-
-    networkload.write_schedule(
-        str(path),
-        len(sorted_flows),
-        [(flow.src_node_id, flow.dst_node_id) for flow in sorted_flows],
-        [flow.size_byte for flow in sorted_flows],
-        [flow.start_time_ns for flow in sorted_flows],
-    )
+    with open(path, "w", encoding="utf-8") as f:
+        for flow in sorted_flows:
+            f.write(
+                f"{flow.flow_id},{flow.src_node_id},{flow.dst_node_id},"
+                f"{flow.size_byte},{flow.start_time_ns},,{flow.metadata}\n"
+            )
 
 
 def write_od_matrix_csv(path: Path, matrix: list[list[int]]) -> None:
