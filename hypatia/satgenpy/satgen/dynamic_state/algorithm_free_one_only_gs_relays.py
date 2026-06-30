@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 from .fstate_calculation import *
+import os
 
 
 def algorithm_free_one_only_gs_relays(
@@ -79,6 +80,7 @@ def algorithm_free_one_only_gs_relays(
     output_filename = output_dynamic_state_dir + "/gsl_if_bandwidth_" + str(time_since_epoch_ns) + ".txt"
     if enable_verbose_logs:
         print("  > Writing interface bandwidth state to: " + output_filename)
+    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
     with open(output_filename, "w+") as f_out:
         if time_since_epoch_ns == 0:
             for node_id in range(len(satellites)):

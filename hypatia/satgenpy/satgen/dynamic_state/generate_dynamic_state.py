@@ -34,6 +34,7 @@ from .link_policies import (
     dynamic_topology_enabled,
     evaluate_gsl,
     evaluate_isl,
+    validate_dynamic_state_config,
 )
 from .route_export import export_route_paths
 from .topology_export import export_gsl_decisions, export_isl_decisions, export_topology_stats
@@ -58,6 +59,7 @@ def generate_dynamic_state(
         enable_verbose_logs,
         dynamic_state_config=None
 ):
+    validate_dynamic_state_config(dynamic_state_config)
     if offset_ns % time_step_ns != 0:
         raise ValueError("Offset must be a multiple of time_step_ns")
     prev_output = None

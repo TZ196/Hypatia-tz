@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 from .fstate_calculation import *
+import os
 
 
 def algorithm_paired_many_only_over_isls(
@@ -161,6 +162,7 @@ def algorithm_paired_many_only_over_isls(
 
     output_filename = output_dynamic_state_dir + "/gsl_if_bandwidth_" + str(time_since_epoch_ns) + ".txt"
     print("  > Writing interface bandwidth state to: " + output_filename)
+    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
     with open(output_filename, "w+") as f_out:
         for (node_id, if_id) in gsl_if_bandwidth_state:
 

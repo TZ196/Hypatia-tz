@@ -135,7 +135,51 @@ def _base_route_weight(distance_m, mode):
         return distance_m / LIGHT_SPEED_M_PER_S
     if mode == "delay_ms":
         return distance_m / LIGHT_SPEED_M_PER_S * 1000.0
+    if mode not in ("distance", "distance_only"):
+        raise ValueError("Unsupported route weight base metric: %s" % mode)
     return distance_m
+
+
+def _normalize_weight_unit(mode):
+    if mode in ("distance", "distance_only"):
+        return "distance"
+    if mode in ("delay_s", "delay_ms"):
+        return mode
+    return None
+
+
+def validate_dynamic_state_config(config):
+    if not dynamic_topology_enabled(config):
+        return
+
+    routing_config = _section(config, "routing")
+    isl_config = _section(config, "isl")
+    gsl_config = _section(config, "gsl")
+
+    routing_weight_mode = _value(
+        routing_config,
+        "weight_mode",
+        _value(isl_config, "weight", "distance"),
+    )
+    if routing_weight_mode == "stability_aware":
+        isl_weight_unit = _normalize_weight_unit(
+            _value(routing_config, "base_metric", "distance")
+        )
+    else:
+        isl_weight_unit = _normalize_weight_unit(routing_weight_mode)
+
+    gsl_weight_unit = _normalize_weight_unit(_value(gsl_config, "weight", "distance"))
+
+    if isl_weight_unit is None:
+        raise ValueError("Unsupported ISL routing weight mode: %s" % routing_weight_mode)
+    if gsl_weight_unit is None:
+        raise ValueError("Unsupported GSL routing weight mode: %s" % _value(gsl_config, "weight", "distance"))
+    if isl_weight_unit != gsl_weight_unit:
+        raise ValueError(
+            "ISL and GSL routing weights must use the same unit; got ISL=%s and GSL=%s. "
+            "Use distance+distance, delay_s+delay_s, or delay_ms+delay_ms."
+            % (isl_weight_unit, gsl_weight_unit)
+        )
 
 
 def _compute_stability_aware_weight(distance_m, link_type, tracking_rate_a_deg_s,
@@ -144,7 +188,7 @@ def _compute_stability_aware_weight(distance_m, link_type, tracking_rate_a_deg_s
     routing_config = _section(config, "routing")
     isl_config = _section(config, "isl")
 
-    base_metric = _value(routing_config, "base_metric", "delay_ms")
+    base_metric = _value(routing_config, "base_metric", "distance")
     base_weight = _base_route_weight(distance_m, base_metric)
     apply_to = _list_value(
         routing_config,
@@ -196,15 +240,16 @@ def compute_isl_route_weight(distance_m, link_type, tracking_rate_a_deg_s,
                              age_s, config):
     routing_config = _section(config, "routing")
     isl_config = _section(config, "isl")
+    weight_scale = float(_value(routing_config, "isl_weight_scale", 1.0) or 1.0)
     weight_mode = _value(
         routing_config,
         "weight_mode",
         _value(isl_config, "weight", "distance"),
     )
     if weight_mode in ("distance", "distance_only"):
-        return distance_m
+        return distance_m * weight_scale
     if weight_mode in ("delay_s", "delay_ms"):
-        return _base_route_weight(distance_m, weight_mode)
+        return _base_route_weight(distance_m, weight_mode) * weight_scale
     if weight_mode == "stability_aware":
         return _compute_stability_aware_weight(
             distance_m,
@@ -214,7 +259,7 @@ def compute_isl_route_weight(distance_m, link_type, tracking_rate_a_deg_s,
             predicted_duration_s,
             age_s,
             config,
-        )
+        ) * weight_scale
     raise ValueError("Unsupported ISL routing weight mode: %s" % weight_mode)
 
 
@@ -512,7 +557,8 @@ def evaluate_gsl(ground_station, satellite_id, satellite, epoch, time, time_sinc
     )
 
     weight_mode = _value(gsl_config, "weight", "distance")
-    weight = distance_m / LIGHT_SPEED_M_PER_S if weight_mode == "delay_s" else distance_m
+    weight_scale = float(_value(gsl_config, "weight_scale", 1.0) or 1.0)
+    weight = _base_route_weight(distance_m, weight_mode) * weight_scale
     return LinkDecision(
         active=active,
         raw_active=raw_active,

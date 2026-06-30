@@ -500,9 +500,15 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
 
     per_slice_selected = []
     per_slice_uncovered = []
+    per_slice_coverage = []
+    per_slice_coverable = []
+    per_slice_full_matrix_coverage = []
     fstate_cache = {}
     num_satellites = config.NUM_SATELLITES
     max_flows_per_slice = getattr(config, "TRAFFIC_MIN_COVER_MAX_FLOWS_PER_SLICE", None)
+    target_coverage = float(getattr(config, "TRAFFIC_MIN_COVER_TARGET_COVERAGE", 1.0))
+    if target_coverage <= 0.0 or target_coverage > 1.0:
+        raise ValueError("TRAFFIC_MIN_COVER_TARGET_COVERAGE must be in (0, 1]")
 
     for time_ns in time_slices:
         fstate = _read_cumulative_fstate(dynamic_state_dir, available_fstates, time_ns, fstate_cache)
@@ -526,8 +532,14 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
                 coverage_lists.append([])
 
         selected_indices = []
-        remaining = uncovered_count
-        while remaining > 0:
+        coverable_pairs = set()
+        for coverage in coverage_lists:
+            coverable_pairs.update(coverage)
+
+        remaining_coverable = len(coverable_pairs)
+        target_covered = int(math.ceil(len(coverable_pairs) * target_coverage))
+        target_remaining = len(coverable_pairs) - target_covered
+        while remaining_coverable > target_remaining:
             best_idx = None
             best_new = 0
             for idx, coverage in enumerate(coverage_lists):
@@ -535,7 +547,7 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
                     continue
                 new_count = 0
                 for pair_idx in coverage:
-                    if uncovered[pair_idx]:
+                    if pair_idx in coverable_pairs and uncovered[pair_idx]:
                         new_count += 1
                 if new_count > best_new:
                     best_new = new_count
@@ -546,9 +558,9 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
 
             selected_indices.append(best_idx)
             for pair_idx in coverage_lists[best_idx]:
-                if uncovered[pair_idx]:
+                if pair_idx in coverable_pairs and uncovered[pair_idx]:
                     uncovered[pair_idx] = False
-                    remaining -= 1
+                    remaining_coverable -= 1
 
             coverage_lists[best_idx] = []
 
@@ -556,7 +568,15 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
                 break
 
         per_slice_selected.append(selected_indices)
-        per_slice_uncovered.append(remaining)
+        per_slice_uncovered.append(remaining_coverable)
+        per_slice_coverable.append(len(coverable_pairs))
+        per_slice_coverage.append(
+            0.0 if not coverable_pairs
+            else (len(coverable_pairs) - remaining_coverable) / len(coverable_pairs)
+        )
+        per_slice_full_matrix_coverage.append(
+            (len(coverable_pairs) - remaining_coverable) / uncovered_count
+        )
 
     merge_same_pair = bool(getattr(config, "TRAFFIC_MIN_COVER_MERGE_SAME_PAIR", True))
     base_flow_size = int(getattr(config, "TRAFFIC_FLOW_SIZE_BYTES", 1_000_000))
@@ -615,6 +635,10 @@ def _generate_min_cover_plan(config, stations: list[GroundStation]) -> tuple[lis
     config._traffic_min_cover_summary = {
         "time_slices": len(time_slices),
         "uncovered_pairs_per_slice": per_slice_uncovered,
+        "coverage_per_slice": per_slice_coverage,
+        "coverable_pairs_per_slice": per_slice_coverable,
+        "full_matrix_coverage_per_slice": per_slice_full_matrix_coverage,
+        "target_coverage": target_coverage,
         "candidate_flows": len(candidates),
         "merge_same_pair": merge_same_pair,
         "max_total_flows": max_total_flows,
@@ -732,6 +756,21 @@ def describe_traffic_plan(config, flows: list[TrafficFlow]) -> dict[str, str]:
         summary.update({
             "min_cover_time_slices": str(details.get("time_slices", "")),
             "min_cover_candidate_flows": str(details.get("candidate_flows", "")),
+            "min_cover_target_coverage": str(details.get("target_coverage", "")),
+            "min_cover_min_coverage": str(min(details.get("coverage_per_slice", [0]))),
+            "min_cover_avg_coverage": str(
+                sum(details.get("coverage_per_slice", [0])) / len(details.get("coverage_per_slice", [0]))
+            ),
+            "min_cover_min_full_matrix_coverage": str(min(details.get("full_matrix_coverage_per_slice", [0]))),
+            "min_cover_avg_full_matrix_coverage": str(
+                sum(details.get("full_matrix_coverage_per_slice", [0]))
+                / len(details.get("full_matrix_coverage_per_slice", [0]))
+            ),
+            "min_cover_min_coverable_pairs": str(min(details.get("coverable_pairs_per_slice", [0]))),
+            "min_cover_avg_coverable_pairs": str(
+                sum(details.get("coverable_pairs_per_slice", [0]))
+                / len(details.get("coverable_pairs_per_slice", [0]))
+            ),
             "min_cover_merge_same_pair": str(details.get("merge_same_pair", "")),
             "min_cover_max_total_flows": str(details.get("max_total_flows", "")),
             "min_cover_uncovered_pairs": ",".join(str(v) for v in details.get("uncovered_pairs_per_slice", [])),

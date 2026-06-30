@@ -1,5 +1,6 @@
 import math
 import networkx as nx
+import os
 
 
 def calculate_fstate_shortest_path_without_gs_relaying(
@@ -29,6 +30,7 @@ def calculate_fstate_shortest_path_without_gs_relaying(
     output_filename = output_dynamic_state_dir + "/fstate_" + str(time_since_epoch_ns) + ".txt"
     if enable_verbose_logs:
         print("  > Writing forwarding state to: " + output_filename)
+    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
     with open(output_filename, "w+") as f_out:
 
         # Satellites to ground stations
@@ -179,6 +181,7 @@ def calculate_fstate_shortest_path_with_gs_relaying(
     output_filename = output_dynamic_state_dir + "/fstate_" + str(time_since_epoch_ns) + ".txt"
     if enable_verbose_logs:
         print("  > Writing forwarding state to: " + output_filename)
+    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
     with open(output_filename, "w+") as f_out:
 
         # Satellites and ground stations to ground stations
