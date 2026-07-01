@@ -8,7 +8,8 @@ Starlink-like 550 km, 53 degree compact shell experiment:
 - 168 satellite-anchored ground stations
 - distance shortest-path routing with `isl_weight_scale=0.1`
 - Kuiper-style min-cover traffic and timezone-sized flow volumes
-- ISL capacity `1 Gbps`, GSL capacity `0.2 Gbps`
+- single-flow base size `300 MB`
+- ISL capacity `5 Gbps`, GSL capacity `1 Gbps`
 - post-ns-3 tensor export enabled
 
 Prepare inputs only:
